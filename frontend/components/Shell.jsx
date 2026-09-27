@@ -10,7 +10,12 @@ export default function Shell({ children }) {
 
   const openDrawer = () => setDrawerOpen(true);
   const closeDrawer = () => setDrawerOpen(false);
-  const toggleCollapse = () => setCollapsed((prev) => !prev);
+  // On mobile the sidebar is a drawer, so its collapse button should close it
+  // rather than switch to the icon-only desktop mode.
+  const toggleCollapse = () => {
+    if (window.matchMedia("(max-width: 760px)").matches) closeDrawer();
+    else setCollapsed((prev) => !prev);
+  };
 
   return (
     <ShellContext.Provider value={{ openDrawer, closeDrawer }}>

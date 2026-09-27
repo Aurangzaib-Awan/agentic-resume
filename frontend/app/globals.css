@@ -190,6 +190,10 @@ aside.collapsed .side-bottom a span { display: none; }
      so the inner scroll areas never overflow — let them shrink to the viewport instead */
   .hero-col, .chat-col, .main-col { min-height: 0; }
   .mobile-topbar { display: flex; }
+  /* inputs have an intrinsic min width, so without this they won't shrink and push the send button out */
+  .chat-input-shell input { min-width: 0; }
+  /* long unbroken strings (email, urls) have no natural break points */
+  .channel-value { overflow-wrap: anywhere; }
 
   aside {
     position: fixed; top: 0; bottom: 0; left: 0; z-index: 20;

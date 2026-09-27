@@ -324,3 +324,33 @@ POST /calendar/book
 - Don't change the backend endpoints or response shapes.
 - Don't change other components or pages.
 - Ask before any decision not covered here.
+
+## Task 9: Fix three mobile UX bugs
+
+### Bug 1: Sidebar close button doesn't fully close the sidebar
+On mobile, tapping the close (X) icon on the sidebar drawer only hides the text labels — the sidebar itself (background, icons, layout space) stays visible and stuck on screen. It should fully close and slide away, same as tapping the backdrop.
+
+**Fix:** Find wherever the close button's onClick is wired (likely in `Sidebar.jsx` or `Shell.jsx`) and make sure it toggles the same state that controls the drawer's open/closed CSS class or transform — not just a state that hides text. The close button and the backdrop-click should trigger identical behavior.
+
+**Test:** Open the drawer on mobile, tap the close icon → the whole sidebar (icons included) should slide/fade away completely, same as tapping outside it.
+
+### Bug 2: Chat send button overflows the input bar on some mobile screens
+On certain mobile viewport sizes (especially zoomed-in or narrower screens), the send/arrow button pokes outside the input bar instead of staying docked inside it.
+
+**Fix:** Likely a flexbox/width issue — the input field and button probably don't have `flex-shrink` set correctly, or the input bar's container has a fixed width that doesn't scale. Check:
+- The input bar container should use `display: flex` with the text input set to `flex: 1` (so it shrinks/grows) and the button at a fixed size that doesn't shrink (`flex-shrink: 0`).
+- Test at multiple mobile widths (320px, 375px, 390px, 414px) and with browser zoom at 110–125%, since the bug seems to depend on effective viewport width.
+
+**Test:** Check the chat input bar at several mobile widths and zoom levels — the send button should always stay fully inside the input bar, never overflowing or getting cut off.
+
+### Bug 3: Email/text overflows its container on the Contact page
+On the Contact page, the email address (and possibly other contact info) overflows outside its card/box instead of wrapping or truncating.
+
+**Fix:** Add `word-break: break-all` or `overflow-wrap: break-word` to the text element holding the email (long unbroken strings like emails don't wrap by default). Alternatively, reduce font size on mobile if the container has a fixed width. Check the same for LinkedIn URL/handle if it's displayed as raw text.
+
+**Test:** Open the Contact page on mobile — the email and LinkedIn text should stay fully inside their card, wrapping to a new line if needed, never spilling outside the box.
+
+### Constraints
+- Test all three fixes on mobile viewport sizes (use Chrome DevTools device toolbar at minimum: iPhone SE, iPhone 14, Pixel 7).
+- Don't change desktop layout or styling.
+- Don't touch unrelated components.
