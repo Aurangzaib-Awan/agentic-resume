@@ -240,3 +240,87 @@ In the relevancy handler, distinguish between:
 ### Constraints
 - Don't change any backend code.
 - Don't change the styling of the score card or other components.
+
+
+## Task 7: Fix mobile scroll — chat not scrollable on phone
+
+When opening the frontend on a phone, the chat content doesn't scroll. This likely means the chat container or the page body has `overflow: hidden` or a fixed height that doesn't account for mobile viewport. 
+
+### Debug checklist
+1. Check if the chat message container has `overflow-y: auto` or `overflow-y: scroll`.
+2. Check if any parent element (Shell, layout, body) has `overflow: hidden` or `height: 100vh` that traps the scroll on mobile.
+3. On mobile, the browser chrome (address bar) shrinks/grows on scroll — using `100vh` causes content to hide behind it. Use `100dvh` (dynamic viewport height) instead, or `min-height: 100vh` with `overflow: auto`.
+4. Check if the sidebar drawer or backdrop is somehow intercepting touch events even when closed.
+
+### Testing — required before marking done
+1. Open the site on a phone (or use Chrome DevTools mobile emulation — toggle device toolbar, pick a phone like iPhone 14 or Pixel 7).
+2. Send several messages so the chat overflows the visible area.
+3. Verify you can scroll up through message history and scroll down to the input.
+4. Verify the landing page also scrolls if content overflows.
+5. Test with the sidebar both open and closed on mobile.
+
+### Constraints
+- Don't change the desktop layout or styling.
+- Fix should work across iOS Safari and Android Chrome at minimum.
+
+---
+
+## Task 8: Redesign Book a Call — cleaner slot picker
+
+The current booking UI dumps all available time slots at once, making it feel cluttered. Redesign it as a two-step picker:
+
+### Step 1: Pick a date
+- Show a compact row of selectable date chips (next 7 days), e.g. `Mon 28`, `Tue 29`, `Wed 30`...
+- Default to the first day that has available slots.
+- Only one date selected at a time.
+
+### Step 2: Pick a time
+- After a date is selected, fetch slots for that date from `GET /calendar/slots?date=YYYY-MM-DD`.
+- Show the available times as a vertical list of selectable chips, e.g. `9:00 AM`, `9:15 AM`, `9:30 AM`.
+- Group them visually if there are many — e.g. morning (before 12pm) and afternoon (12pm+) with a subtle label.
+- All slots are 15 minutes — don't show duration, it's implicit.
+
+### Step 3: Confirm
+- After picking a time, show the name + email form (same as now).
+- On submit, call `POST /calendar/book` with the selected slot, name, and email.
+- Show confirmation or error message in chat (same as now).
+
+### Response shapes (unchanged)
+
+**Fetch slots:**
+```
+GET /calendar/slots?date=2026-09-28
+```
+```json
+{
+  "slots": [
+    {
+      "time": "2026-09-28T04:00:00.000Z",
+      "display": "Mon Sep 28, 09:00 AM",
+      "available": true
+    }
+  ]
+}
+```
+
+**Book:**
+```
+POST /calendar/book
+```
+```json
+// Request
+{"slot": "2026-09-28T04:00:00.000Z", "name": "John", "email": "john@example.com"}
+
+// Response
+{"confirmed": true, "message": "You're booked! Check john@example.com for the confirmation."}
+```
+
+### Styling
+- Match the existing dark theme — same surface colors, borders, text colors as the rest of the chat.
+- Date chips and time chips should look like the action capsules (outlined, monochrome, clickable feel).
+- Selected state: subtle highlight (e.g. lighter border or faint background), not a bright accent color.
+
+### Constraints
+- Don't change the backend endpoints or response shapes.
+- Don't change other components or pages.
+- Ask before any decision not covered here.

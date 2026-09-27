@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { bookCalendarSlot, getCalendarSlots } from "@/lib/api";
 import { openEmailDraft } from "@/lib/quickActions";
 
+const DAY_COUNT = 7;
+
 function toDateKey(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -11,55 +13,76 @@ function toDateKey(d) {
   return `${y}-${m}-${day}`;
 }
 
-function buildWeek(weekOffset) {
+function buildDays() {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() + weekOffset * 7);
-  return Array.from({ length: 7 }, (_, i) => {
+  return Array.from({ length: DAY_COUNT }, (_, i) => {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
     return d;
   });
 }
 
+function formatDay(d) {
+  const weekday = d.toLocaleDateString(undefined, { weekday: "short" });
+  return `${weekday} ${d.getDate()}`;
+}
+
+function formatTime(iso) {
+  return new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+// The backend's window can spill into the next day, so keep only the slots that land
+// on the chosen date in the visitor's timezone.
+function slotsForDay(slots, key) {
+  return slots.filter((slot) => slot.available && toDateKey(new Date(slot.time)) === key);
+}
+
 // status: loading | ready | booking | booked | unavailable
 export default function BookCallWidget({ onBooked }) {
-  const [week, setWeek] = useState(0);
-  const days = useMemo(() => buildWeek(week), [week]);
-  const [date, setDate] = useState(() => toDateKey(new Date()));
-  const [slots, setSlots] = useState([]);
+  const days = useMemo(() => buildDays(), []);
+  const [slotsByDate, setSlotsByDate] = useState({});
+  const [date, setDate] = useState(null);
   const [status, setStatus] = useState("loading");
   const [selected, setSelected] = useState(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [formError, setFormError] = useState("");
 
+  // Fetch the whole week up front so we can open on the first day with open slots
+  // and switching days is instant.
   useEffect(() => {
     let cancelled = false;
-    getCalendarSlots(date)
-      .then((result) => {
-        if (cancelled) return;
-        setSlots(result);
-        setStatus("ready");
-      })
-      .catch(() => {
-        if (!cancelled) setStatus("unavailable");
+    Promise.allSettled(days.map((d) => getCalendarSlots(toDateKey(d)))).then((results) => {
+      if (cancelled) return;
+      if (results.every((r) => r.status === "rejected")) {
+        setStatus("unavailable");
+        return;
+      }
+      const byDate = {};
+      days.forEach((d, i) => {
+        const key = toDateKey(d);
+        byDate[key] = results[i].status === "fulfilled" ? slotsForDay(results[i].value, key) : [];
       });
+      const firstOpen = days.map(toDateKey).find((key) => byDate[key].length > 0);
+      setSlotsByDate(byDate);
+      setDate(firstOpen || toDateKey(days[0]));
+      setStatus("ready");
+    });
     return () => {
       cancelled = true;
     };
-  }, [date]);
+  }, [days]);
+
+  const slots = (date && slotsByDate[date]) || [];
+  const morning = slots.filter((slot) => new Date(slot.time).getHours() < 12);
+  const afternoon = slots.filter((slot) => new Date(slot.time).getHours() >= 12);
 
   function selectDate(key) {
-    if (key === date) return;
+    if (key === date || status === "booking") return;
     setDate(key);
     setSelected(null);
-    setStatus("loading");
-  }
-
-  function selectWeek(w) {
-    setWeek(w);
-    selectDate(toDateKey(buildWeek(w)[0]));
+    setFormError("");
   }
 
   async function handleBook(e) {
@@ -90,6 +113,28 @@ export default function BookCallWidget({ onBooked }) {
     }
   }
 
+  function renderGroup(label, group) {
+    if (group.length === 0) return null;
+    return (
+      <div className="book-group">
+        <span className="book-label">{label}</span>
+        <div className="book-times">
+          {group.map((slot) => (
+            <button
+              key={slot.time}
+              type="button"
+              className={`qa-chip slot${selected && selected.time === slot.time ? " active" : ""}`}
+              disabled={status === "booking"}
+              onClick={() => setSelected(slot)}
+            >
+              {formatTime(slot.time)}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (status === "unavailable") {
     return (
       <div className="qa-widget">
@@ -106,31 +151,26 @@ export default function BookCallWidget({ onBooked }) {
   if (status === "booked") {
     return (
       <div className="qa-widget">
-        <p className="qa-note">Booked: {selected.display}</p>
+        <p className="qa-note">
+          Booked: {formatDay(new Date(selected.time))}, {formatTime(selected.time)}
+        </p>
+      </div>
+    );
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="qa-widget">
+        <div className="activity">
+          <span className="pulse"></span>Loading slots...
+        </div>
       </div>
     );
   }
 
   return (
     <div className="qa-widget">
-      <div className="qa-toggle">
-        <button
-          type="button"
-          className={`qa-chip${week === 0 ? " active" : ""}`}
-          onClick={() => selectWeek(0)}
-        >
-          This week
-        </button>
-        <button
-          type="button"
-          className={`qa-chip${week === 1 ? " active" : ""}`}
-          onClick={() => selectWeek(1)}
-        >
-          Next week
-        </button>
-      </div>
-
-      <div className="qa-chips">
+      <div className="book-days">
         {days.map((d) => {
           const key = toDateKey(d);
           return (
@@ -140,35 +180,22 @@ export default function BookCallWidget({ onBooked }) {
               className={`qa-chip${key === date ? " active" : ""}`}
               onClick={() => selectDate(key)}
             >
-              {d.toLocaleDateString(undefined, { weekday: "short", day: "numeric" })}
+              {formatDay(d)}
             </button>
           );
         })}
       </div>
 
-      {status === "loading" ? (
-        <div className="activity">
-          <span className="pulse"></span>Loading slots...
-        </div>
-      ) : slots.length === 0 ? (
+      {slots.length === 0 ? (
         <p className="qa-note">No open slots on this day.</p>
       ) : (
-        <div className="qa-chips">
-          {slots.map((slot) => (
-            <button
-              key={slot.time}
-              type="button"
-              className={`qa-chip slot${selected && selected.time === slot.time ? " active" : ""}`}
-              disabled={!slot.available || status === "booking"}
-              onClick={() => setSelected(slot)}
-            >
-              {slot.display}
-            </button>
-          ))}
+        <div className="book-slots">
+          {renderGroup("Morning", morning)}
+          {renderGroup("Afternoon", afternoon)}
         </div>
       )}
 
-      {selected && status !== "loading" && (
+      {selected && (
         <form className="qa-form" onSubmit={handleBook}>
           <input
             className="qa-input"
@@ -189,7 +216,9 @@ export default function BookCallWidget({ onBooked }) {
           {formError && <p className="qa-note">{formError}</p>}
           <div className="pc-actions">
             <button type="submit" className="pc-btn primary" disabled={status === "booking"}>
-              {status === "booking" ? "Booking..." : `Book ${selected.display}`}
+              {status === "booking"
+                ? "Booking..."
+                : `Book ${formatDay(new Date(selected.time))}, ${formatTime(selected.time)}`}
             </button>
           </div>
         </form>

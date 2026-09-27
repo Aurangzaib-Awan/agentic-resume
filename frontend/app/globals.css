@@ -184,7 +184,11 @@ aside.collapsed .side-bottom a span { display: none; }
 .drawer-backdrop.open { display: block; }
 
 @media (max-width: 760px) {
-  body { flex-direction: column; height: 100vh; }
+  /* dvh tracks the mobile address bar; vh stays as the fallback for older browsers */
+  body { flex-direction: column; height: 100vh; height: 100dvh; }
+  /* in a column flexbox, children default to min-height:auto and grow to fit their content,
+     so the inner scroll areas never overflow — let them shrink to the viewport instead */
+  .hero-col, .chat-col, .main-col { min-height: 0; }
   .mobile-topbar { display: flex; }
 
   aside {
@@ -785,6 +789,22 @@ aside.collapsed .side-bottom a span { display: none; }
 .qa-chip:disabled { opacity: 0.4; cursor: default; }
 .qa-chip:disabled:hover { color: var(--text-dim); border-color: var(--border); }
 .qa-chip.slot { font-family: var(--mono); font-size: 12px; }
+
+/* book a call: date row -> grouped time list */
+.book-days { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.book-days::-webkit-scrollbar { display: none; }
+.book-days .qa-chip { flex-shrink: 0; }
+.book-slots { display: flex; flex-direction: column; gap: 14px; max-height: 280px; overflow-y: auto; }
+.book-group { display: flex; flex-direction: column; gap: 6px; }
+.book-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.book-times { display: flex; flex-direction: column; gap: 6px; }
+.book-times .qa-chip { text-align: left; }
 .qa-form { display: flex; flex-direction: column; gap: 10px; }
 .qa-input {
   width: 100%;
