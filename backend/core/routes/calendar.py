@@ -33,7 +33,7 @@ async def get_slots(date: str | None = None) -> dict:
     else:
         start = datetime.now(tz=timezone.utc)
 
-    end = start + timedelta(days=1)
+    end = start 
 
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.get(
@@ -45,7 +45,7 @@ async def get_slots(date: str | None = None) -> dict:
             params={
                 "eventTypeId": CAL_EVENT_TYPE_ID,
                 "start": start.strftime("%Y-%m-%dT00:00:00Z"),
-                "end": end.strftime("%Y-%m-%dT23:59:59Z"),
+                "end": (start + timedelta(days=1)).strftime("%Y-%m-%dT00:00:00Z"),
             },
         )
         print(resp.status_code, resp.text)
