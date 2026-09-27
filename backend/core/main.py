@@ -36,8 +36,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:5173",
-        # add the vercel url once the frontend is deployed
+        "https://frontend-wine-three-rj48vb48xe.vercel.app",
     ],
+    # vercel preview deployments of the frontend get a fresh url on every push
+    allow_origin_regex=r"https://frontend-[a-z0-9]+-aurangzaib-awans-projects\.vercel\.app",
     allow_methods=["POST", "GET"],
     allow_headers=["*"],
 )
