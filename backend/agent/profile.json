@@ -1,0 +1,104 @@
+{
+  "name": "Aurangzaib Shehzad Awan",
+  "top_projects": ["AI Stylist", "AI Assistant", "MentorAI"],
+  "title": "GenAI Engineer (Agentic Systems)",
+  "location": "Lahore, Pakistan",
+  "bio": "GenAI Engineer specializing in multi-agent systems, RAG pipelines, and production-ready LLM applications. Experienced in building and deploying intelligent systems using modern LLM frameworks and MLOps tooling.",
+  "contact": {
+    "email": "aurangzaibshehzadawan@gmail.com",
+    "phone": "+92 307 9776729",
+    "linkedin": "https://linkedin.com/in/aurangzaib-shehzad",
+    "github": "https://github.com/Aurangzaib-Awan"
+  },
+  "education": {
+    "degree": "B.S. Computer Science",
+    "institution": "FAST National University of Computer and Emerging Sciences (NUCES)",
+    "years": "2022 - 2026"
+  },
+  "experience": [
+    {
+      "role": "GenAI Engineer Intern",
+      "company": "Systems Limited",
+      "dates": "June 2026 - Sept 2026",
+      "bullets": [
+        "Built a multi-agent conversational system for a high-end fashion brand: a browser agent handling routine product and catalog queries, and a case-solver agent handling complex, high-caliber requests.",
+        "Defined the routing logic between agents so query complexity determined which agent handled the request, keeping simple lookups cheap and reserving deeper reasoning for hard cases.",
+        "Engineered a token-optimization strategy for prompt construction, cutting LLM token usage and inference cost, and introduced multithreading to improve pipeline throughput."
+      ]
+    },
+    {
+      "role": "AI/ML Engineer Intern",
+      "company": "Netsol",
+      "dates": "Jun 2025 - Aug 2025",
+      "bullets": [
+        "Built a web application with FastAPI and React, containerized it with Docker, and deployed it serverlessly on AWS Lambda."
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "MentorAI",
+      "subtitle": "FYP - AI skill-mentor and proctoring system",
+      "github_repo": "MentorAI",
+      "note": null,
+      "tech_stack": ["FastAPI", "React", "YOLOv8", "MediaPipe", "PyTorch", "LangGraph"],
+      "bullets": [
+        "Engineered a stateful AI agent using LangGraph and Gemini/Groq LLMs that analyzes a user's skill profile from the database and recommends personalized real-world projects to build.",
+        "Developed a real-time anti-cheating proctoring system combining YOLOv8n (multi-face and phone detection) with MediaPipe (gaze tracking, head pose, posture analysis) running concurrently on live webcam streams."
+      ]
+    },
+    {
+      "name": "AI Assistant",
+      "subtitle": "This agent — a LangGraph-powered talking resume",
+      "github_repo": "agentic_resume",
+      "note": null,
+      "tech_stack": ["LangGraph", "LangChain", "FastAPI", "Next.js", "PostgreSQL", "Groq"],
+      "bullets": [
+        "Built this multi-node LangGraph agent — classify, github-fetch, and qa nodes — that routes visitor questions and answers as a talking resume.",
+        "Persists conversation history in Postgres via a custom message-log table, deployed on Vercel with Neon as the database."
+      ]
+    },
+    {
+      "name": "AI Stylist",
+      "subtitle": "Multi-Agent Assistant for a High-End Fashion Brand",
+      "github_repo": null,
+      "note": "Client project - code is private and the product never went live publicly, so there is no repo to share.",
+      "tech_stack": ["LangGraph", "LangChain", "Playwright", "PostgreSQL", "ORM", "Python"],
+      "bullets": [
+        "Designed the relational schema behind the LangGraph-orchestrated agent flow, modelling the product catalog and conversation state so both agents could query it directly.",
+        "Wrote the ORM layer that exposed the schema to the agents as structured query interfaces instead of raw SQL, keeping data access consistent across agent flows.",
+        "Scraped the client's full website with Playwright and built the cleaning and normalization pass that turned raw pages into the structured dataset the agents retrieve over."
+      ]
+    },
+    {
+      "name": "Multimodal RAG",
+      "subtitle": "Document QA System",
+      "github_repo": null,
+      "note": "Local only - not yet pushed to GitHub.",
+      "tech_stack": ["VLM", "PyMuPDF4LLM", "fitz", "Qdrant", "hybrid retrieval"],
+      "bullets": [
+        "Built a multimodal RAG pipeline retrieving over both text and images, using a vision-language model (VLM) to interpret figures alongside font-aware text extracted via PyMuPDF4LLM and embedded images via fitz.",
+        "Implemented recursive chunking and hybrid retrieval (dense + sparse embeddings) on Qdrant to improve recall and ranking over dense-only search."
+      ]
+    },
+    {
+      "name": "LLaMA 3.1 8B Fine-Tuning",
+      "subtitle": "Text-to-SQL",
+      "github_repo": "text-to-sql-llama",
+      "note": null,
+      "tech_stack": ["QLoRA", "bitsandbytes", "PEFT", "HuggingFace SFTTrainer", "MLflow"],
+      "bullets": [
+        "Fine-tuned LLaMA 3.1 8B on the Spider Text-to-SQL dataset using QLoRA (4-bit quantization) on Kaggle GPUs.",
+        "Applied PEFT via LoRA adapters for parameter-efficient fine-tuning, tracking experiments and metrics with MLflow."
+      ]
+    }
+  ],
+  "skills": {
+    "llm_genai": ["LLaMA", "QLoRA", "PEFT", "bitsandbytes", "HuggingFace Transformers", "SFTTrainer", "LangGraph"],
+    "rag_vector_db": ["Qdrant", "PG-Vector", "hybrid retrieval", "reranking", "pdfplumber", "PyMuPDF4LLM", "chunking strategies"],
+    "ml_dl": ["PyTorch", "NumPy", "Pandas", "HuggingFace"],
+    "mlops_deployment": ["MLflow", "Docker", "FastAPI", "AWS Lambda"],
+    "frontend_db": ["React", "Next.js", "PostgreSQL", "Mongo"],
+    "programming": ["Python", "C++", "GitHub"]
+  }
+}

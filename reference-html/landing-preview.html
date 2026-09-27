@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Awan — AI Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#060606;
+    --surface:#0F0F10;
+    --surface-2:#161617;
+    --border:#232324;
+    --border-soft:#1A1A1B;
+    --text:#F2F1ED;
+    --text-dim:#8A8A8D;
+    --text-faint:#5A5A5D;
+    --accent:#F2F1ED;
+    --sans:'Inter', -apple-system, sans-serif;
+    --mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none;}
+  a:focus-visible, button:focus-visible, input:focus-visible{
+    outline:1px solid var(--text-dim);
+    outline-offset:2px;
+  }
+
+  /* ---------- sidebar ---------- */
+  aside{
+    width:230px;
+    flex-shrink:0;
+    background:var(--surface);
+    border-right:1px solid var(--border-soft);
+    display:flex;
+    flex-direction:column;
+    padding:22px 16px;
+    transition:width 0.22s ease, padding 0.22s ease;
+  }
+  aside.collapsed{
+    width:68px;
+    padding:22px 12px;
+  }
+  .side-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 4px 20px;
+    margin-bottom:18px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .side-brand{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    overflow:hidden;
+    white-space:nowrap;
+  }
+  .side-brand-name{font-weight:600;font-size:14.5px;letter-spacing:-0.01em;}
+  .side-brand-role{font-size:11.5px;color:var(--text-dim);}
+  aside.collapsed .side-brand-role,
+  aside.collapsed .side-brand-name{display:none;}
+  aside.collapsed .side-top{justify-content:center;}
+
+  .collapse-btn{
+    width:26px;height:26px;
+    border-radius:6px;
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .collapse-btn:hover{color:var(--text);border-color:var(--text-faint);}
+  aside.collapsed .collapse-btn{position:relative;}
+
+  .side-status{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-size:12px;
+    color:var(--text-dim);
+    padding:0 4px 18px;
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .status-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:#4ADE80;
+    box-shadow:0 0 0 3px rgba(74,222,128,0.1);
+    flex-shrink:0;
+  }
+  aside.collapsed .side-status span:last-child{display:none;}
+  aside.collapsed .side-status{justify-content:center;}
+
+  .side-nav{display:flex;flex-direction:column;gap:2px;}
+  .side-nav a{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    padding:9px 10px;
+    border-radius:7px;
+    font-size:14px;
+    color:var(--text-dim);
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .side-nav a svg{flex-shrink:0;width:16px;height:16px;}
+  .side-nav a:hover{color:var(--text);background:var(--surface-2);}
+  .side-nav a.active{color:var(--text);background:var(--surface-2);}
+  aside.collapsed .side-nav a{justify-content:center;padding:9px;}
+  aside.collapsed .side-nav a span{display:none;}
+
+  .side-bottom{margin-top:auto;padding-top:16px;border-top:1px solid var(--border-soft);display:flex;flex-direction:column;gap:2px;}
+  .side-bottom a{
+    display:flex;align-items:center;gap:11px;
+    padding:9px 10px;border-radius:7px;
+    font-size:13px;color:var(--text-faint);
+    white-space:nowrap;overflow:hidden;
+  }
+  .side-bottom a svg{flex-shrink:0;width:15px;height:15px;}
+  .side-bottom a:hover{color:var(--text-dim);}
+  aside.collapsed .side-bottom a{justify-content:center;padding:9px;}
+  aside.collapsed .side-bottom a span{display:none;}
+
+  /* ---------- main ---------- */
+  main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:40px 24px;
+    min-height:100vh;
+  }
+  .hero{
+    max-width:640px;
+    width:100%;
+    text-align:center;
+  }
+  h1{
+    font-size:clamp(36px,5.4vw,54px);
+    font-weight:600;
+    letter-spacing:-0.03em;
+    line-height:1.08;
+    margin:0 0 18px;
+    color:var(--text);
+  }
+  .sub{
+    font-size:16.5px;
+    color:var(--text-dim);
+    max-width:42ch;
+    margin:0 auto 40px;
+    line-height:1.6;
+  }
+
+  .chat-input-shell{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:8px 8px 8px 20px;
+    transition:border-color 0.15s ease;
+  }
+  .chat-input-shell:focus-within{border-color:var(--text-faint);}
+  .chat-input-shell input{
+    flex:1;
+    background:transparent;
+    border:none;
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:15.5px;
+    padding:10px 0;
+  }
+  .chat-input-shell input::placeholder{color:var(--text-faint);}
+  .chat-input-shell input:focus{outline:none;}
+  .send-btn{
+    width:38px;height:38px;
+    border-radius:9px;
+    background:var(--accent);
+    border:none;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:opacity 0.15s ease;
+  }
+  .send-btn:hover{opacity:0.85;}
+  .send-btn svg{width:16px;height:16px;}
+
+  .suggestions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+    margin-top:22px;
+  }
+  .suggestion{
+    font-size:13.5px;
+    color:var(--text-dim);
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:8px 15px;
+    cursor:pointer;
+    transition:border-color 0.15s ease, color 0.15s ease;
+  }
+  .suggestion:hover{border-color:var(--text-faint);color:var(--text);}
+
+  /* ---------- mobile top bar + drawer ---------- */
+  .mobile-topbar{
+    display:none;
+    align-items:center;
+    gap:14px;
+    padding:14px 18px;
+    border-bottom:1px solid var(--border-soft);
+    flex-shrink:0;
+    width:100%;
+  }
+  .menu-btn{
+    width:34px;height:34px;border-radius:8px;background:transparent;
+    border:1px solid var(--border);color:var(--text-dim);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .menu-btn:hover{color:var(--text);border-color:var(--text-faint);}
+  .mobile-topbar .mt-title{font-size:14.5px;font-weight:600;}
+  .mobile-topbar .mt-status{
+    margin-left:auto;display:flex;align-items:center;gap:6px;
+    font-size:12px;color:var(--text-dim);
+  }
+
+  .drawer-backdrop{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.55);
+    z-index:15;
+  }
+  .drawer-backdrop.open{display:block;}
+
+  @media (max-width:760px){
+    body{flex-direction:column;}
+    .mobile-topbar{display:flex;}
+
+    aside{
+      position:fixed;top:0;bottom:0;left:0;z-index:20;
+      width:250px;
+      transform:translateX(-100%);
+      transition:transform 0.22s ease;
+    }
+    aside.drawer-open{transform:translateX(0);}
+    aside.collapsed{width:250px;padding:22px 16px;}
+
+    main{width:100%;padding-top:60px;}
+  }
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <div class="side-top">
+    <div class="side-brand">
+      <span class="side-brand-name">Aurangzaib Shehzad</span>
+      <span class="side-brand-role">AI Engineer</span>
+    </div>
+    <button class="collapse-btn" id="collapseBtn" aria-label="Collapse sidebar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+  </div>
+
+  <div class="side-status"><span class="status-dot"></span><span>Agent online</span></div>
+
+  <nav class="side-nav">
+    <a href="#" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+      <span>Chat</span>
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      <span>Projects</span>
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>
+      <span>Experience</span>
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      <span>About</span>
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z" opacity="0"></path><path d="M22 6l-10 7L2 6"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg>
+      <span>Contact</span>
+    </a>
+  </nav>
+
+  <div class="side-bottom">
+    <a href="https://github.com/Aurangzaib-Awan" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+      <span>GitHub</span>
+    </a>
+    <a href="https://linkedin.com/in/aurangzaib-shehzad" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+      <span>LinkedIn</span>
+    </a>
+    <a href="mailto:aurangzaibshehzadawan@gmail.com">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6l-10 7L2 6"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg>
+      <span>Email</span>
+    </a>
+  </div>
+</aside>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+<div class="mobile-topbar">
+  <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+  </button>
+  <span class="mt-title">Awan</span>
+  <span class="mt-status"><span class="status-dot"></span>Online</span>
+</div>
+
+<main>
+  <div class="hero">
+    <h1>Talk to my agent.</h1>
+    <p class="sub">It knows how I work, what I've built, and what I can help you build.</p>
+
+    <div class="chat-input-shell">
+      <input type="text" placeholder="Ask me anything..." autocomplete="off" />
+      <button class="send-btn" aria-label="Send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#060606" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <div class="suggestions">
+      <span class="suggestion">What have you built?</span>
+      <span class="suggestion">Tell me about your AI projects</span>
+      <span class="suggestion">Why should I hire you?</span>
+      <span class="suggestion">How does your RAG system work?</span>
+      <span class="suggestion">What technologies do you work with?</span>
+    </div>
+  </div>
+</main>
+
+<script>
+  // Dummy toggle so you can see collapsed vs expanded — not final interaction logic.
+  const sidebar = document.getElementById('sidebar');
+  const btn = document.getElementById('collapseBtn');
+  btn.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+  });
+
+  // Mobile drawer: hamburger opens the sidebar as an overlay, backdrop/tap-out closes it.
+  const backdrop = document.getElementById('drawerBackdrop');
+  const menuBtn = document.getElementById('menuBtn');
+  function openDrawer(){
+    sidebar.classList.add('drawer-open');
+    backdrop.classList.add('open');
+  }
+  function closeDrawer(){
+    sidebar.classList.remove('drawer-open');
+    backdrop.classList.remove('open');
+  }
+  menuBtn.addEventListener('click', openDrawer);
+  backdrop.addEventListener('click', closeDrawer);
+  sidebar.querySelectorAll('.side-nav a').forEach(a => a.addEventListener('click', closeDrawer));
+</script>
+
+</body>
+</html>

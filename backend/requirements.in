@@ -1,0 +1,19 @@
+# Agent
+langgraph
+langchain-core
+langchain-groq
+pydantic
+
+# Backend
+fastapi
+uvicorn[standard]
+
+# Tools
+httpx
+
+# Config
+python-dotenv
+
+#storage
+langgraph-checkpoint-postgres
+psycopg[binary,pool]
