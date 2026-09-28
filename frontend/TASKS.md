@@ -354,3 +354,29 @@ On the Contact page, the email address (and possibly other contact info) overflo
 - Test all three fixes on mobile viewport sizes (use Chrome DevTools device toolbar at minimum: iPhone SE, iPhone 14, Pixel 7).
 - Don't change desktop layout or styling.
 - Don't touch unrelated components.
+
+
+## Task 10: Make every "Ask agent about this" button work
+
+The "Ask agent about this" button on project cards is a placeholder. It links to `/chat` and sends nothing. It needs to work everywhere it appears.
+
+### Behavior
+- **Inside the chat page:** clicking it sends a message as if the visitor typed it: `Tell me about <project name>`. It appears as a normal visitor message and the agent replies as usual.
+- **On any other page** (Projects, Contact, or anywhere else it appears): clicking it navigates to `/chat` and sends that same message automatically once the chat loads.
+
+### Implementation notes
+1. First, search the whole frontend for every "Ask agent about this" button (chat cards, Projects page, Contact page, any others) and list them before changing anything.
+2. Use one shared handler so every button behaves identically. Don't copy the logic into each page.
+3. For the cross-page case, pass the message through a query param (e.g. `/chat?ask=Tell%20me%20about%20MentorAI`) or sessionStorage. On chat load, read it, send it once, then clear it so a refresh or React strict-mode double render doesn't send it twice.
+4. If a button isn't attached to a project (e.g. on the Contact page), check what it's attached to and ask me what message it should send before deciding.
+
+### Testing, required before marking done
+1. In chat, ask "show me his projects", then click Ask agent on a card. The message should appear once, and the agent should reply.
+2. From the Projects page, click Ask agent on a card. It should land on `/chat` and send the message once.
+3. Refresh the chat page after that. The message must not send again.
+4. Repeat on mobile viewport size.
+
+### Constraints
+- Don't change backend code.
+- Don't change styling or layout.
+- Ask before any decision not covered here.

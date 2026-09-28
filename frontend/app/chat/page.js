@@ -2,10 +2,10 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import MobileTopbar from "@/components/MobileTopbar";
 import MarkdownMessage from "@/components/MarkdownMessage";
 import ProjectCard from "@/components/ProjectCard";
+import AskAgentButton from "@/components/AskAgentButton";
 import QuickActionMenu from "@/components/QuickActionMenu";
 import CvModal from "@/components/CvModal";
 import BookCallWidget from "@/components/BookCallWidget";
@@ -169,9 +169,12 @@ function ChatPageInner() {
                               Live demo
                             </a>
                           )}
-                          <Link href="/chat" className="pc-btn">
-                            Ask agent about this
-                          </Link>
+                          <AskAgentButton
+                            projectName={project.name}
+                            onAsk={(message) => {
+                              if (!pending) sendMessage(message);
+                            }}
+                          />
                         </>
                       }
                     />

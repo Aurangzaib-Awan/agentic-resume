@@ -1,6 +1,6 @@
-import Link from "next/link";
 import MobileTopbar from "@/components/MobileTopbar";
 import ProjectCard from "@/components/ProjectCard";
+import AskAgentButton from "@/components/AskAgentButton";
 
 export const metadata = {
   title: "Projects — Aurangzaib Shehzad",
@@ -87,9 +87,7 @@ export default function ProjectsPage() {
                     <button className="pc-btn primary" disabled={!project.viewable}>
                       View project
                     </button>
-                    <Link href="/chat" className="pc-btn">
-                      Ask agent about this
-                    </Link>
+                    <AskAgentButton projectName={project.name} />
                   </>
                 }
               />
