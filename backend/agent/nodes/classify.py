@@ -37,15 +37,24 @@ async def node_classify(state: AgentState) -> dict:
         )
     except Exception as e:
         print(f"classify failed, defaulting to off_topic: {e}")
-        return {"intent": "off_topic", "repo": None, "project_scope": "none", "project": None}
+        return {"intent": "off_topic", "repo": None, "project_scope": "none", "project": None, "action": "none"}
 
     # guard against a hallucinated repo/project name
     repo = result.repo if result.repo in _REPOS else None
     project = result.project if result.project in _PROJECTS else None
 
+    intent = result.intent
+    project_scope = result.project_scope
+    action = result.action
+
+    # an action always wins: no cards, no github lookup
+    if action != "none":
+        intent, repo, project_scope, project = "qa", None, "none", None
+
     return {
-        "intent": result.intent,
+        "intent": intent,
         "repo": repo,
-        "project_scope": result.project_scope,
+        "project_scope": project_scope,
         "project": project,
+        "action": action,
     }

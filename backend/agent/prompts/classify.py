@@ -32,7 +32,21 @@ CLASSIFY_PROMPT = ChatPromptTemplate.from_messages([
         "is what makes it broad.\n"
         "- 'none' for everything else — follow-ups, skill questions, greetings, "
         "hiring questions, or anything not asking to see a project for the first time.\n"
-        "For any other intent, leave project_scope as 'none' and project null.",
+        "For any other intent, leave project_scope as 'none' and project null.\n\n"
+        "Also set action, for ANY intent:\n"
+        "- 'cv' if the LATEST message directly asks to see, open, or download "
+        "his CV or resume (e.g. 'show cv', 'can I see your resume').\n"
+        "- 'relevancy' if it directly asks to check how well he fits a job or "
+        "role (e.g. 'check relevancy', 'how relevant is he for my job').\n"
+        "- 'book' if it directly asks to book, schedule, or set up a call or "
+        "meeting (e.g. 'book a call', 'can we schedule a meeting').\n"
+        "- 'email' if it directly asks to email him or send him a message "
+        "(e.g. 'send him an email', 'I want to email him').\n"
+        "- 'none' for everything else, including questions ABOUT these topics "
+        "('what does his CV say about Docker', 'what is his email'). Only the "
+        "LATEST message counts — earlier messages never trigger an action.\n"
+        "If action is not 'none', set intent to 'qa', project_scope to 'none', "
+        "and leave project and repo null.",
 
 
     ),

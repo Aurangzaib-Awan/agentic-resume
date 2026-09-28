@@ -42,6 +42,28 @@ TASK_BY_INTENT = {
     ),
 }
 
+ACTION_TASKS = {
+    "cv": (
+        "The visitor asked to see his CV. A CV viewer opens right below your "
+        "reply. Write one short, friendly sentence saying so. Don't describe "
+        "what the CV contains."
+    ),
+    "relevancy": (
+        "The visitor wants to check how well he fits a role. A box to paste "
+        "the job description opens right below your reply. Write one short "
+        "sentence asking them to paste the job description there."
+    ),
+    "book": (
+        "The visitor wants to book a call. A date and time picker opens right "
+        "below your reply. Write one short sentence saying they can pick a "
+        "15-minute slot below."
+    ),
+    "email": (
+        "The visitor wants to email him. A Send Email button appears right "
+        "below your reply. Write one short sentence pointing to it."
+    ),
+}
+
 CARDS_TASK = (
     "Project cards for {names} are shown right above your reply. The visitor "
     "can already see each one's name, description, and tech stack, so don't "

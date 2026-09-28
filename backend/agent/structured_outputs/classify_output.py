@@ -47,3 +47,14 @@ class ClassifyOutput(BaseModel):
             "from the provided project list. Null otherwise."
         ),
     )
+    action: Literal["cv", "relevancy", "book", "email", "none"] = Field(
+        default="none",
+        description=(
+            "Set only when the LATEST message is a direct request to do one of "
+            "these. cv: wants to see or download his CV/resume. relevancy: "
+            "wants to check how well he matches a job or role. book: wants to "
+            "book or schedule a call/meeting. email: wants to email him. "
+            "none: everything else, including questions ABOUT these things "
+            "(e.g. 'what does his CV say about Docker')."
+        ),
+    )

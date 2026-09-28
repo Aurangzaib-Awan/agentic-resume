@@ -14,7 +14,7 @@ from pathlib import Path
 
 from langchain_core.messages import AIMessage
 
-from agent.prompts.qa import QA_PROMPT, TASK_BY_INTENT, CARDS_TASK
+from agent.prompts.qa import QA_PROMPT, TASK_BY_INTENT, CARDS_TASK, ACTION_TASKS
 from agent.state import AgentState
 from agent.tools.chat_models import qa_llm
 
@@ -39,7 +39,10 @@ async def node_qa(state: AgentState) -> dict:
 
 
     # to check if cards task is to include in the context or not
-    if state.get("project_scope") == "broad":
+    action = state.get("action", "none")
+    if action != "none":
+        task = ACTION_TASKS[action]
+    elif state.get("project_scope") == "broad":
         task = CARDS_TASK.format(names=", ".join(_TOP_PROJECTS))
     else:
         task = TASK_BY_INTENT[intent]

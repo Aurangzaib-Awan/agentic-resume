@@ -61,6 +61,7 @@ async def ask_agent(message: str, thread_id: str) -> dict:
         "repo_data": None,
         "project_scope": "none",
         "project": None,
+        "action": "none",
     }
 
     final_state = await Graph.ainvoke(initial_state)
@@ -71,4 +72,9 @@ async def ask_agent(message: str, thread_id: str) -> dict:
     await insert_message(thread_id, "user", message)
     await insert_message(thread_id, "assistant", reply)
 
-    return {"reply": reply, "projects": _get_projects(final_state)}
+    action = final_state.get("action", "none")
+    return {
+        "reply": reply,
+        "projects": _get_projects(final_state),
+        "action": None if action == "none" else action,
+    }

@@ -9,6 +9,8 @@ Contents :
 - function(chat)
 """
 
+from typing import Literal
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -25,6 +27,7 @@ class RequestPayloadSchema(BaseModel):
 class ResponsePayloadSchema(BaseModel):
     reply: str
     projects: list[dict] = []
+    action: Literal["cv", "relevancy", "book", "email"] | None = None
 
 
 @router.post("/chat", response_model=ResponsePayloadSchema)
