@@ -3,7 +3,7 @@ export const QUICK_ACTIONS = [
   { id: "cv", label: "Show CV" },
   { id: "email", label: "Send Email" },
   { id: "book", label: "Book a Call" },
-  { id: "relevancy", label: "Check Relevancy" },
+  { id: "relevancy", label: "ATS" },
 ];
 
 export const PROJECTS_PROMPT = "Show me his projects";
