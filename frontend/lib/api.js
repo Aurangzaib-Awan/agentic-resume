@@ -12,7 +12,9 @@ export async function getAgentResponse(message, threadId) {
   }
 
   const data = await res.json();
-  const action = ["cv", "relevancy", "book", "email"].includes(data.action) ? data.action : null;
+  const action = ["cv", "relevancy", "book", "email", "hire"].includes(data.action)
+    ? data.action
+    : null;
   return { reply: data.reply, projects: data.projects || [], action };
 }
 

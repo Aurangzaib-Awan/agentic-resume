@@ -476,3 +476,22 @@ In the relevancy result card, the labels "Relevancy", "Strengths" and "Gaps" are
 ### Constraints
 - Don't change any other styling.
 - Don't change backend code.
+
+## Task 13: Render both options when action is "hire"
+
+`POST /chat` can now return `action: "hire"` in addition to the existing four values.
+
+### Behavior
+When `action` is `"hire"`, render two buttons together under the reply, side by side (or stacked on mobile): **Book a Call** and **Send Email**. Clicking either runs the exact same handler as the existing "Book a Call" and "Send Email" shortcuts/actions — do not duplicate logic, reuse what Task 11 already built.
+
+### Testing (required)
+1. Ask "how can I hire him?" → both buttons appear under the reply, exactly once.
+2. Click "Book a Call" → the same booking picker from the shortcut menu opens.
+3. Click "Send Email" → the same Gmail compose behavior from the shortcut menu happens.
+4. Ask "can I book a call about hiring him?" → only the booking picker opens (no double buttons), since the backend returns `action: "book"` here, not `"hire"`.
+5. Repeat at 390px width.
+
+### Constraints
+- Don't change backend code.
+- Don't duplicate the book/email logic — call the same handlers Task 11 wired up.
+- Ask before any decision not covered here.

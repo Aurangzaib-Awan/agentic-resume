@@ -195,6 +195,16 @@ function ChatPageInner() {
                   Send Email
                 </button>
               )}
+              {msg.role === "agent" && msg.action === "hire" && (
+                <div className="hire-actions">
+                  <button type="button" className="suggestion" onClick={() => runAction("book")}>
+                    Book a Call
+                  </button>
+                  <button type="button" className="suggestion" onClick={openEmailDraft}>
+                    Send Email
+                  </button>
+                </div>
+              )}
             </div>
           ))}
           {pending && (

@@ -27,7 +27,7 @@ class RequestPayloadSchema(BaseModel):
 class ResponsePayloadSchema(BaseModel):
     reply: str
     projects: list[dict] = []
-    action: Literal["cv", "relevancy", "book", "email"] | None = None
+    action: Literal["cv", "relevancy", "book", "email", "hire"] | None = None
 
 
 @router.post("/chat", response_model=ResponsePayloadSchema)

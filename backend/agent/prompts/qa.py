@@ -64,6 +64,11 @@ ACTION_TASKS = {
         "The visitor wants to email him. A Send Email button appears right "
         "below your reply. Write one short sentence pointing to it."
     ),
+    "hire": (
+        "The visitor asked how to hire him or get in touch about work. Two "
+        "options appear right below your reply: book a 15-minute call, or "
+        "send an email. Write one short sentence letting them pick either."
+    ),
 }
 
 CARDS_TASK = (

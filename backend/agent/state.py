@@ -15,4 +15,4 @@ class AgentState(MessagesState):
     repo_data : dict | None
     project_scope : Literal["specific","broad","none"]
     project : str | None
-    action : Literal["cv","relevancy","book","email","none"]
+    action : Literal["cv","relevancy","book","email","hire","none"]

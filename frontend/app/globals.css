@@ -358,6 +358,11 @@ aside.collapsed .side-bottom a span { display: none; }
   justify-content: center;
   margin-top: 22px;
 }
+.hire-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .suggestion {
   font-size: 13.5px;
   color: var(--text-dim);

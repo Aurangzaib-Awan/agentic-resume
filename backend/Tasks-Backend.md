@@ -223,3 +223,64 @@ In `TASK_BY_INTENT["qa"]`, add this line before the "Only mention booking a call
 ### Constraints
 - Don't change the response shape of `/calendar/book` or `/chat`.
 - Don't change any other file.
+
+
+## Task 3: Add a "hire" action — offer both email and book-a-call together
+
+Files are under `backend/`. Do not touch the frontend.
+
+### What this does
+Right now "how can I hire him" gets classified as `action: "email"`, which only offers one path. Add a fifth action, `hire`, for exactly this kind of question, and have qa mention both options so the visitor can pick.
+
+### Changes, file by file
+
+**1. `agent/structured_outputs/classify_output.py`** — update the `action` field:
+```python
+    action: Literal["cv", "relevancy", "book", "email", "hire", "none"] = Field(
+        default="none",
+        description=(
+            "Set only when the LATEST message is a direct request to do one of "
+            "these. cv: wants to see or download his CV/resume. relevancy: "
+            "wants to check how well he matches a job or role. book: wants to "
+            "book or schedule a call/meeting specifically. email: wants to "
+            "email him specifically. hire: asks generally how to hire him, "
+            "reach out to hire him, or get in touch about work — when they "
+            "haven't said which channel (call vs email) they want. "
+            "none: everything else, including questions ABOUT these things."
+        ),
+    )
+```
+
+**2. `agent/prompts/classify.py`** — in the `action` section, add a bullet for `hire` right after the `book` bullet:
+```python
+        "- 'hire' if it generally asks how to hire him, reach out to hire "
+        "him, or work with him, WITHOUT naming a specific channel (e.g. 'how "
+        "can I hire him', 'how do I get in touch to hire him', 'how do we "
+        "start working together'). If they specifically say 'call' or 'book', "
+        "use 'book' instead. If they specifically say 'email' or 'mail', use "
+        "'email' instead.\n"
+```
+
+**3. `agent/state.py`** — update the `action` field type:
+```python
+    action : Literal["cv","relevancy","book","email","hire","none"]
+```
+
+**4. `agent/prompts/qa.py`** — add to `ACTION_TASKS`:
+```python
+    "hire": (
+        "The visitor asked how to hire him or get in touch about work. Two "
+        "options appear right below your reply: book a 15-minute call, or "
+        "send an email. Write one short sentence letting them pick either."
+    ),
+```
+
+**5. `agent/nodes/qa.py`, `agent/interface.py`, `core/routes/chat.py`** — wherever the `action` type is checked or typed (`Literal[...]`), add `"hire"` to the list alongside the existing four.
+
+### Testing (required, run against the live server, fresh thread_id each time)
+- "how can I hire him" → `action: "hire"`
+- "how do I get in touch to hire him" → `action: "hire"`
+- "can I book a call to talk about hiring him" → `action: "book"` (channel was named)
+- "can I email him about a job" → `action: "email"` (channel was named)
+- "hey" → `action: null`, unchanged
+- Existing cv/relevancy/book/email/none cases from Task 1 still pass
