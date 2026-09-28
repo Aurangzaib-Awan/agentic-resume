@@ -454,3 +454,25 @@ After a chat reply arrives, render in this order: reply text, then project cards
 - Don't change backend code.
 - Don't change styling except for the inline Send Email button.
 - Ask before any decision not covered here.
+
+
+## Task 12: Booking memory + relevancy heading colour
+
+### Part A: send thread_id when booking
+`POST /calendar/book` now accepts an optional `thread_id`:
+```json
+{"slot": "...", "name": "...", "email": "...", "thread_id": "string"}
+```
+In the booking widget, include the same `thread_id` that the chat already sends to `/chat` (the one in localStorage). Don't generate a new one. The response is unchanged.
+
+### Part B: relevancy card headings
+In the relevancy result card, the labels "Relevancy", "Strengths" and "Gaps" are too dim. Make them white, using the existing primary text colour token from globals.css (not a hardcoded hex). Change only those three labels.
+
+### Testing (required, use a real browser tool if you have one)
+1. Book a call from the chat. In the browser network tab, confirm the request body to `/calendar/book` contains `thread_id`, and that it equals the one sent to `/chat`.
+2. Open the relevancy card and confirm the three headings are white and readable. Confirm the score badge and other text are unchanged.
+3. Repeat at 390px width.
+
+### Constraints
+- Don't change any other styling.
+- Don't change backend code.

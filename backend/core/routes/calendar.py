@@ -11,6 +11,8 @@ import httpx
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from agent.tools.integrations.postgres import insert_message
+
 router = APIRouter()
 
 CAL_API_KEY = os.environ["CAL_API_KEY"]
@@ -72,6 +74,7 @@ class BookingRequest(BaseModel):
     slot: str       # ISO timestamp from the slots response
     name: str
     email: str
+    thread_id: str | None = None
 
 
 @router.post("/calendar/book")
@@ -99,6 +102,16 @@ async def book_slot(payload: BookingRequest) -> dict:
 
     if resp.status_code not in (200, 201):
         raise HTTPException(status_code=resp.status_code, detail="Booking failed")
+
+    if payload.thread_id:
+        try:
+            await insert_message(
+                payload.thread_id,
+                "assistant",
+                f"[Call booked: 15-minute call at {payload.slot} UTC for {payload.name}, {payload.email}. Confirmation email sent.]",
+            )
+        except Exception as e:
+            print(f"could not save booking to history: {e}")
 
     return {
         "confirmed": True,

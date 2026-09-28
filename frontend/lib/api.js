@@ -27,11 +27,11 @@ export async function getCalendarSlots(date) {
   return data.slots || [];
 }
 
-export async function bookCalendarSlot({ slot, name, email }) {
+export async function bookCalendarSlot({ slot, name, email, threadId }) {
   const res = await fetch(`${API_BASE_URL}/calendar/book`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ slot, name, email }),
+    body: JSON.stringify({ slot, name, email, thread_id: threadId }),
   });
 
   if (!res.ok) {

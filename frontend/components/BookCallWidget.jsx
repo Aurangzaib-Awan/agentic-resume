@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { bookCalendarSlot, getCalendarSlots } from "@/lib/api";
 import { openEmailDraft } from "@/lib/quickActions";
+import { getThreadId } from "@/lib/threadId";
 
 const DAY_COUNT = 7;
 
@@ -100,6 +101,7 @@ export default function BookCallWidget({ onBooked }) {
         slot: selected.time,
         name: trimmedName,
         email: trimmedEmail,
+        threadId: getThreadId(),
       });
       if (result.confirmed) {
         setStatus("booked");

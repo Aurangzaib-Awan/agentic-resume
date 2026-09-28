@@ -156,3 +156,70 @@ Expected `action` per message:
 - Each action reply is one short sentence.
 
 If any case fails, fix the classify prompt wording and re-test. Do not add keyword matching in code.
+
+
+
+## Task 2: Booking memory — save confirmed bookings into chat history, and card wording
+
+Files are under `backend/`. Do not touch the frontend.
+
+### Part A: save a booking into the thread's history
+File: `core/routes/calendar.py`
+
+Add the import at the top:
+```python
+from agent.tools.integrations.postgres import insert_message
+```
+
+Add one optional field to `BookingRequest`:
+```python
+class BookingRequest(BaseModel):
+    slot: str
+    name: str
+    email: str
+    thread_id: str | None = None
+```
+
+In `book_slot`, replace the final `return` with:
+```python
+    if payload.thread_id:
+        try:
+            await insert_message(
+                payload.thread_id,
+                "assistant",
+                f"[Call booked: 15-minute call at {payload.slot} UTC for {payload.name}, {payload.email}. Confirmation email sent.]",
+            )
+        except Exception as e:
+            print(f"could not save booking to history: {e}")
+
+    return {
+        "confirmed": True,
+        "message": f"You're booked! Check {payload.email} for the confirmation.",
+    }
+```
+The `try` means a database hiccup never turns a successful booking into a failed response. `thread_id` stays optional so a request without it still works.
+
+### Part B: don't promise things after a booking, and don't say "above"/"below" for cards
+File: `agent/prompts/qa.py`
+
+In `CARDS_TASK`, replace "shown right above your reply" with "shown with your reply", and add this sentence at the end of the string:
+```python
+    " Never say the cards are above or below. Just say something like 'here are the projects'."
+```
+
+In `TASK_BY_INTENT["qa"]`, add this line before the "Only mention booking a call" line:
+```python
+        "If the conversation shows a call was already booked, don't tell them "
+        "to email or phone to arrange one. Don't promise what he will do.\n"
+```
+
+### Testing (required, run against the live server)
+1. `POST /calendar/book` with a valid `thread_id` → returns 200 same as before, and a row is inserted into the messages table for that thread (check the DB or `GET` the thread's history if there's a way to).
+2. `POST /calendar/book` with no `thread_id` → still returns 200, no error.
+3. `POST /calendar/book` with a `thread_id` but the DB insert fails (e.g. temporarily break the connection string) → still returns 200 to the client, error is only printed server-side.
+4. Full flow: book a call on thread `t1`, then `POST /chat` on the same `t1` with message "great" → the reply must NOT tell the visitor to email or call to arrange a meeting.
+5. `POST /chat` with "show projects" → reply text never contains the words "above" or "below".
+
+### Constraints
+- Don't change the response shape of `/calendar/book` or `/chat`.
+- Don't change any other file.

@@ -19,6 +19,8 @@ TASK_BY_INTENT = {
         "what he has built, mention at most one or two in a sentence. Only "
         "state details that are written in the profile above. Never invent "
         "folder structures, file names, or features.\n"
+        "If the conversation shows a call was already booked, don't tell them "
+        "to email or phone to arrange one. Don't promise what he will do.\n"
         "Only mention booking a call when the user shows actual hiring or "
         "buying intent — they ask about pricing, availability, hiring him, or "
         "whether he can do a specific paid job. A definition question, a "
@@ -65,13 +67,14 @@ ACTION_TASKS = {
 }
 
 CARDS_TASK = (
-    "Project cards for {names} are shown right above your reply. The visitor "
+    "Project cards for {names} are shown with your reply. The visitor "
     "can already see each one's name, description, and tech stack, so don't "
     "list or describe them. Write one or two short sentences that help them "
     "decide where to go next, like offering to go deeper on one of them or "
     "talk about something similar for their own work. Keep it warm and "
     "natural, like a helpful person would say it. No exclamation-mark hype, "
     "no emojis, no 'awesome' or 'check it out'."
+    " Never say the cards are above or below. Just say something like 'here are the projects'."
 )
 
 QA_PROMPT = ChatPromptTemplate.from_messages([
