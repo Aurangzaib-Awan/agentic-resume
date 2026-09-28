@@ -32,8 +32,14 @@ function ChatPageInner() {
   const [pending, setPending] = useState(false);
   const [cvOpen, setCvOpen] = useState(false);
   const scrollRef = useRef(null);
+  const inputRef = useRef(null);
   const threadIdRef = useRef(null);
   const initialSendRef = useRef(false);
+
+  const prefillInput = useCallback((text) => {
+    setInput(text);
+    inputRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     threadIdRef.current = getThreadId();
@@ -94,13 +100,15 @@ function ChatPageInner() {
     if (initialSendRef.current) return;
     const q = searchParams.get("q");
     const action = searchParams.get("action");
-    if (q || action) {
+    const prefill = searchParams.get("prefill");
+    if (q || action || prefill) {
       initialSendRef.current = true;
       router.replace("/chat");
-      // One-shot handoff from the landing page (?q= or ?action=), not a sync loop.
+      // One-shot handoff from another page (?q=, ?action=, or ?prefill=), not a sync loop.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (q) sendMessage(q);
-      else runAction(action);
+      else if (action) runAction(action);
+      else prefillInput(prefill);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -169,12 +177,7 @@ function ChatPageInner() {
                               Live demo
                             </a>
                           )}
-                          <AskAgentButton
-                            projectName={project.name}
-                            onAsk={(message) => {
-                              if (!pending) sendMessage(message);
-                            }}
-                          />
+                          <AskAgentButton projectName={project.name} onPrefill={prefillInput} />
                         </>
                       }
                     />
@@ -198,6 +201,7 @@ function ChatPageInner() {
         <form className="chat-input-shell" onSubmit={handleSubmit}>
           <QuickActionMenu onAction={runAction} />
           <input
+            ref={inputRef}
             type="text"
             placeholder="Ask me anything..."
             autoComplete="off"

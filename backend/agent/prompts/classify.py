@@ -25,11 +25,16 @@ CLASSIFY_PROMPT = ChatPromptTemplate.from_messages([
         "Copy the project name EXACTLY from the list above into 'project'. "
         "A follow-up question about a project already discussed ('did he deploy it', "
         "'what stack did he use', 'can he do that for me') is NOT specific — that's 'none'.\n"
-        "- 'broad' if they're asking generally what projects/work exist "
-        "(e.g. 'what have you built', 'show me your work', 'what have you made').\n"
+        "- 'broad' if they want to see or list his projects or work in ANY "
+        "phrasing, singular or plural, short or long. Examples: 'show project', "
+        "'show projects', 'projects', 'his work', 'what have you built', "
+        "'show me your work', 'what has he made'. Naming no specific project "
+        "is what makes it broad.\n"
         "- 'none' for everything else — follow-ups, skill questions, greetings, "
         "hiring questions, or anything not asking to see a project for the first time.\n"
         "For any other intent, leave project_scope as 'none' and project null.",
+
+
     ),
     MessagesPlaceholder("messages"),
 ])

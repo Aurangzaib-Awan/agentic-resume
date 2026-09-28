@@ -380,3 +380,37 @@ The "Ask agent about this" button on project cards is a placeholder. It links to
 - Don't change backend code.
 - Don't change styling or layout.
 - Ask before any decision not covered here.
+
+## Task 10 - Revised (replaces the earlier Task 10): "Ask agent about this" prefills the chat box, and Contact page gets a Book a Call button
+
+The earlier Task 10 said the button should auto-send a message. Ignore that. The new behavior is below.
+
+### Part A: every "Ask agent about this" button
+**Behavior:** the button puts text in the chat input box. It does NOT send it. The visitor reviews it and presses send themselves.
+- The text is `Tell me about <project name>`, using the name shown on that card (e.g. `Tell me about MentorAI`).
+- Inside the chat page (cards in chat replies): fill the chat input with the text and focus the input. No navigation.
+- On any other page (Projects page, anywhere else the button exists): navigate to `/chat?prefill=<url-encoded text>`. When the chat page loads, read `prefill`, put it in the input, focus it, then remove the param from the URL (`router.replace('/chat')`) so a refresh doesn't refill it.
+
+### Part B: Contact page
+- Remove the "Leave a message with the agent" box (heading, description, input, arrow button).
+- Replace it with one "Book a call" button, styled like the existing primary button (same style as "View project"). Keep the "or" divider only if it still reads correctly. Leave every other piece of copy on the page unchanged, and ask me if any wording now sounds wrong.
+- Clicking it navigates to `/chat?action=book`. On chat load, read `action`, and if it is `book`, open the same booking picker (BookCallWidget) that the "Book a Call" shortcut opens. Then remove the param from the URL.
+- Reuse the existing shortcut handler for Book a Call. Do not duplicate the logic.
+
+### Implementation rules
+1. First, search the whole frontend for every "Ask agent about this" button and list them all before changing anything. Also search for any other button that links to `/chat`.
+2. Use ONE shared handler for all Ask agent buttons.
+3. Reading `prefill` and `action` must run exactly once. React strict mode runs effects twice in development, so guard with a ref so the picker never opens twice and the input is never filled twice.
+4. If a button isn't attached to a project card, ask me what text it should prefill. Don't guess.
+
+### Testing, required before marking done (use a real browser tool if you have one)
+1. In chat, ask "show projects", then click Ask agent on the MentorAI card. The input shows `Tell me about MentorAI`, nothing is sent, and the visitor can edit it and press send.
+2. On the Projects page, click Ask agent on a card. You land on `/chat` with that text in the input and nothing sent. Refresh: the input is empty.
+3. On the Contact page, click Book a call. You land on `/chat` with the booking picker open exactly once. Refresh: the picker is not reopened.
+4. Repeat all three at phone width (390px).
+5. Confirm the Contact page no longer has the message box, with no leftover empty space or broken layout.
+
+### Constraints
+- Don't change backend code.
+- Don't change styling except what Part B needs.
+- Ask before any decision not covered here.

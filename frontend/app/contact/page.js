@@ -1,5 +1,5 @@
+import Link from "next/link";
 import MobileTopbar from "@/components/MobileTopbar";
-import ContactAskPanel from "@/components/ContactAskPanel";
 
 export const metadata = {
   title: "Contact — Aurangzaib Shehzad",
@@ -81,7 +81,11 @@ export default function ContactPage() {
 
           <div className="divider-row"><span>or</span></div>
 
-          <ContactAskPanel />
+          <div className="pc-actions">
+            <Link href="/chat?action=book" className="pc-btn primary">
+              Book a call
+            </Link>
+          </div>
         </div>
       </div>
     </div>
