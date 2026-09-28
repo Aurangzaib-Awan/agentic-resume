@@ -12,7 +12,8 @@ export async function getAgentResponse(message, threadId) {
   }
 
   const data = await res.json();
-  return { reply: data.reply, projects: data.projects || [] };
+  const action = ["cv", "relevancy", "book", "email"].includes(data.action) ? data.action : null;
+  return { reply: data.reply, projects: data.projects || [], action };
 }
 
 export async function getCalendarSlots(date) {

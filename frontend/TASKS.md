@@ -414,3 +414,43 @@ The earlier Task 10 said the button should auto-send a message. Ignore that. The
 - Don't change backend code.
 - Don't change styling except what Part B needs.
 - Ask before any decision not covered here.
+
+## Task 11: Inline actions — open the same widgets when the backend says so
+
+`POST /chat` now returns a third field:
+```json
+{
+  "reply": "string",
+  "projects": [ ...cards, unchanged... ],
+  "action": "cv" | "relevancy" | "book" | "email" | null
+}
+```
+If `action` is missing, `null`, or any other value, do nothing extra.
+
+### Behavior
+After a chat reply arrives, render in this order: reply text, then project cards (if any), then the action widget (if `action` is set). The four actions map to what the shortcut menu already does:
+- `cv` → open the CV viewer/modal, same as the "Show CV" shortcut.
+- `relevancy` → show the paste-a-job-description box, same as the "Check Relevancy" shortcut.
+- `book` → show the booking picker (BookCallWidget), same as the "Book a Call" shortcut.
+- `email` → do NOT auto-open Gmail. Render a "Send Email" button inline under the reply, styled like the existing action capsules. Clicking it runs the same handler as the "Send Email" shortcut. Reason: browsers block `window.open` when it runs inside a network callback instead of a real click, so the visitor must click.
+
+### Rules
+1. Reuse the existing shortcut handlers and components. Do not duplicate logic.
+2. First find where the shortcut menu handlers live and list them before changing anything.
+3. Store the `action` on that agent message and render the widget as part of the message, so it appears exactly once per reply. Do not trigger it from an effect that can re-run. If you must use an effect, guard it with a ref (React strict mode runs effects twice in development).
+4. Never fire on page load, navigation, or re-render. Only for the reply to the message just sent.
+5. The shortcut menu and capsules must keep working exactly as before.
+
+### Testing (required, use a real browser tool if you have one; otherwise a mock backend that returns each action)
+1. Reply with `action: "cv"` → CV viewer opens once.
+2. `action: "relevancy"` → paste box appears once, and submitting a job description still works.
+3. `action: "book"` → picker appears once, and booking still works.
+4. `action: "email"` → a Send Email button appears and nothing opens automatically. Clicking it opens Gmail compose in a new tab, and the original tab stays on the site.
+5. `action: null` and a response with no `action` field → nothing extra renders.
+6. Send two messages in a row with different actions → each widget appears once, under the right reply.
+7. Repeat 1–4 at 390px phone width.
+
+### Constraints
+- Don't change backend code.
+- Don't change styling except for the inline Send Email button.
+- Ask before any decision not covered here.

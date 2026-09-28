@@ -22,6 +22,7 @@ const INITIAL_MESSAGE = {
   content:
     "I'm Awan's agent. Ask me about his projects, stack, or experience — I'll answer as him.",
   projects: [],
+  action: null,
 };
 
 function ChatPageInner() {
@@ -59,8 +60,9 @@ function ChatPageInner() {
     setPending(true);
 
     try {
-      const { reply, projects } = await getAgentResponse(trimmed, threadIdRef.current);
-      setMessages((prev) => [...prev, { id: nextId++, role: "agent", content: reply, projects }]);
+      const { reply, projects, action } = await getAgentResponse(trimmed, threadIdRef.current);
+      setMessages((prev) => [...prev, { id: nextId++, role: "agent", content: reply, projects, action }]);
+      if (action === "cv") setCvOpen(true);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -183,6 +185,15 @@ function ChatPageInner() {
                     />
                   ))}
                 </div>
+              )}
+              {msg.role === "agent" && msg.action === "book" && (
+                <BookCallWidget onBooked={(message) => appendAgentMessage(message)} />
+              )}
+              {msg.role === "agent" && msg.action === "relevancy" && <RelevancyWidget />}
+              {msg.role === "agent" && msg.action === "email" && (
+                <button type="button" className="suggestion" onClick={openEmailDraft}>
+                  Send Email
+                </button>
               )}
             </div>
           ))}
