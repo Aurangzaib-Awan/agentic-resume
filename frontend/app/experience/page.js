@@ -7,13 +7,24 @@ export const metadata = {
 
 const ROLES = [
   {
+    company: "Evolvyx Labs",
+    logo: "/logos/evolvyx-labs.jpg",
+    logoAlt: "Evolvyx Labs logo",
+    logoWidth: 270,
+    logoHeight: 270,
+    title: "Associate Software Engineer",
+    period: "Oct 2026 — Present",
+    bullets: ["Yet to update."],
+    tags: [],
+  },
+  {
     company: "Systems Limited",
     logo: "/logos/systems-limited.png",
     logoAlt: "Systems Limited logo",
     logoWidth: 264,
     logoHeight: 111,
     title: "GenAI Engineer Intern",
-    period: "Jun 2026 — Sep 2026",
+    period: "Jun 2026 — Oct 2026",
     bullets: [
       "Built a retail conversational agent for a high-end fashion brand, owning the backend end to end — database design and ORM integration.",
       "Designed an orchestrator that routes incoming queries between two sub-agents: one tuned for heavy, complex reasoning and one for fast, simple lookups.",
@@ -45,7 +56,7 @@ export default function ExperiencePage() {
       <MobileTopbar title="Experience" />
       <div className="topbar">
         <span className="topbar-title">Experience</span>
-        <span className="topbar-sub">2 roles</span>
+        <span className="topbar-sub">{ROLES.length} roles</span>
       </div>
 
       <div className="content-scroll">
@@ -68,16 +79,20 @@ export default function ExperiencePage() {
                     </span>
                     <span className="role-period">{role.period}</span>
                   </div>
-                  <ul className="role-list">
-                    {role.bullets.map((bullet) => (
-                      <li key={bullet}>{bullet}</li>
-                    ))}
-                  </ul>
-                  <div className="role-tags">
-                    {role.tags.map((tag) => (
-                      <span className="role-tag" key={tag}>{tag}</span>
-                    ))}
-                  </div>
+                  {role.bullets.length > 0 && (
+                    <ul className="role-list">
+                      {role.bullets.map((bullet) => (
+                        <li key={bullet}>{bullet}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {role.tags.length > 0 && (
+                    <div className="role-tags">
+                      {role.tags.map((tag) => (
+                        <span className="role-tag" key={tag}>{tag}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
