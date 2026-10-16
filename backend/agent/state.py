@@ -16,3 +16,4 @@ class AgentState(MessagesState):
     project_scope : Literal["specific","broad","none"]
     project : str | None
     action : Literal["cv","relevancy","book","email","hire","none"]
+    status : str   # line already shown to the visitor, so qa doesn't repeat it

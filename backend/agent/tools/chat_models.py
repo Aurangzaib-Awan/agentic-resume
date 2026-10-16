@@ -7,13 +7,14 @@ llm logic is separate from other files.
 Contents :
 - LLMClient : wraps a list of chat models, retries each then falls back to the next
     - ainvoke(prompt, output_schema=None) -> response
+    - astream(prompt) -> async iterator of text chunks
 - classify_llm, qa_llm : preloaded singletons
 """
 
 from __future__ import annotations
 
 import asyncio
-from typing import Any, List, Optional, Type
+from typing import Any, AsyncIterator, List, Optional, Type
 
 from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel
@@ -50,6 +51,50 @@ class LLMClient:
                     print(f"LLM call failed [attempt {attempt + 1}/{MAX_RETRIES}]: {e}")
 
                     # exponential backoff, skipped on the final attempt
+                    is_last_attempt = attempt == MAX_RETRIES - 1
+                    if not is_last_attempt:
+                        await asyncio.sleep(2 ** attempt)
+
+        raise RuntimeError("All LLM models failed.") from last_error
+
+    async def astream(self, prompt: Any) -> AsyncIterator[str]:
+        """Stream the reply as text chunks, with retry and fallback.
+
+        Args:
+            prompt (Any): Formatted messages to send to the model.
+
+        Returns:
+            AsyncIterator[str]: Non-empty text chunks of the reply.
+        """
+
+        last_error: Optional[Exception] = None
+
+        for model in self.models:
+
+            for attempt in range(MAX_RETRIES):
+                started = False
+
+                try:
+
+                    async for chunk in model.astream(prompt):
+
+                        if not chunk.content:
+                            continue
+
+                        started = True
+                        yield chunk.content
+
+                    return
+
+                except Exception as e:
+
+                    # the visitor already has part of this reply, a retry would repeat it
+                    if started:
+                        raise
+
+                    last_error = e
+                    print(f"LLM stream failed [attempt {attempt + 1}/{MAX_RETRIES}]: {e}")
+
                     is_last_attempt = attempt == MAX_RETRIES - 1
                     if not is_last_attempt:
                         await asyncio.sleep(2 ** attempt)

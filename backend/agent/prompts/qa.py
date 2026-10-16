@@ -7,6 +7,9 @@ Purpose : holds the qa prompt — persona, profile, and per-intent instructions.
 Contents :
 - QA_PROMPT : system message + conversation history
 - TASK_BY_INTENT : what to do for each intent
+- ACTION_TASKS : one-line replies for the inline actions
+- CARDS_TASK : reply shown alongside the project cards
+- STATUS_NOTE : tells qa which status line the visitor already saw
 """
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -82,6 +85,12 @@ CARDS_TASK = (
     " Never say the cards are above or below. Just say something like 'here are the projects'."
 )
 
+STATUS_NOTE = (
+    "\n\nThe visitor has already been shown this line while you worked: "
+    "\"{status}\". Don't repeat or rephrase it, and don't announce what "
+    "you're about to do. Go straight into the answer."
+)
+
 QA_PROMPT = ChatPromptTemplate.from_messages([
     (
         "system",
@@ -121,6 +130,7 @@ QA_PROMPT = ChatPromptTemplate.from_messages([
         "PROFILE:\n{profile}\n\n"
         "{repo_context}"
         "TASK:\n{task}"
+        "{status_note}"
     ),
     MessagesPlaceholder("messages"),
 ])

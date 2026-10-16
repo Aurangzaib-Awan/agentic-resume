@@ -6,15 +6,16 @@ Purpose :   The purpose of this file is to set my persona so the llm talks like 
             to the intent. This is the only node that speaks.
 
 Contents :
-- function(qa_node) : builds the prompt from state, calls the llm, returns the reply
+- function(qa_node) : builds the prompt from state, streams the llm reply to the visitor, returns the full reply
 """
 
 import json
 from pathlib import Path
 
 from langchain_core.messages import AIMessage
+from langgraph.config import get_stream_writer
 
-from agent.prompts.qa import QA_PROMPT, TASK_BY_INTENT, CARDS_TASK, ACTION_TASKS
+from agent.prompts.qa import QA_PROMPT, TASK_BY_INTENT, CARDS_TASK, ACTION_TASKS, STATUS_NOTE
 from agent.state import AgentState
 from agent.tools.chat_models import qa_llm
 
@@ -46,20 +47,35 @@ async def node_qa(state: AgentState) -> dict:
         task = CARDS_TASK.format(names=", ".join(_TOP_PROJECTS))
     else:
         task = TASK_BY_INTENT[intent]
-    print(state.get("project_scope"), task)
+
+    status = state.get("status", "")
+    status_note = STATUS_NOTE.format(status=status) if status else ""
 
     prompt = QA_PROMPT.format_messages(
         profile=_PROFILE_TEXT,
         repo_context=repo_context,
         task = task,
+        status_note=status_note,
         messages=state["messages"][-10:],
     )
 
+    write = get_stream_writer()
+    chunks = []
+
     try:
-        response = await qa_llm.ainvoke(prompt)
-        
+
+        async for text in qa_llm.astream(prompt):
+            chunks.append(text)
+            write({"type": "token", "text": text})
+
     except Exception as e:
         print(f"qa failed: {e}")
+
+        # mid-reply failure: let the caller end the stream, a fallback line would read as part of the answer
+        if chunks:
+            raise
+
+        write({"type": "token", "text": FALLBACK})
         return {"messages": [AIMessage(content=FALLBACK)]}
 
-    return {"messages": [response]}
+    return {"messages": [AIMessage(content="".join(chunks))]}

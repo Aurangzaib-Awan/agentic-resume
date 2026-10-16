@@ -52,7 +52,13 @@ CLASSIFY_PROMPT = ChatPromptTemplate.from_messages([
         "('what does his CV say about Docker', 'what is his email'). Only the "
         "LATEST message counts — earlier messages never trigger an action.\n"
         "If action is not 'none', set intent to 'qa', project_scope to 'none', "
-        "and leave project and repo null.",
+        "and leave project and repo null.\n\n"
+        "Finally set status: one short line (under 15 words) the visitor sees "
+        "while the answer is being prepared, saying what you are about to look "
+        "into — e.g. 'Checking his experience with RAG pipelines.' or 'Pulling "
+        "up the MentorAI repo to see how it's structured.' Refer to him in "
+        "third person. Never answer the question in it. Leave it empty for "
+        "greetings, off_topic, or when action is not 'none'.",
 
 
     ),

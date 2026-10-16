@@ -5,7 +5,7 @@ Purpose : the schema the classify node forces the LLM to return, so routing and
 repo selection arrive as validated data rather than free text.
 
 Contents :
-- ClassifyOutput: intent + repo_name
+- ClassifyOutput: intent, repo, project_scope, project, action, status
 """
 
 from typing import Literal, Optional
@@ -58,5 +58,15 @@ class ClassifyOutput(BaseModel):
             "reach out to hire him, or get in touch about work — when they "
             "haven't said which channel (call vs email) they want. "
             "none: everything else, including questions ABOUT these things."
+        ),
+    )
+    status: str = Field(
+        default="",
+        description=(
+            "One short line (under 15 words) shown to the visitor while the "
+            "answer is prepared, saying what you are about to look into, e.g. "
+            "'Pulling up the MentorAI repo to see how it's structured.' Third "
+            "person, no answer content. Empty string for greetings, off_topic, "
+            "or when action is not 'none'."
         ),
     )

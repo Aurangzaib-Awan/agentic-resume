@@ -4,11 +4,14 @@
 Purpose : this file is created so we can direct the user queries to either qa or github or off_topic
 
 Contents :
-- function(classify) : takes state (user message) and returns a dict built from ClassifyOutput (intent + repo if any)
+- function(classify) : takes state (user message) and returns a dict built from ClassifyOutput (intent + repo if any),
+                        and streams the status line to the visitor before the next node runs
 """
 
 import json
 from pathlib import Path
+
+from langgraph.config import get_stream_writer
 
 from agent.prompts.classify import CLASSIFY_PROMPT
 from agent.state import AgentState
@@ -37,7 +40,7 @@ async def node_classify(state: AgentState) -> dict:
         )
     except Exception as e:
         print(f"classify failed, defaulting to off_topic: {e}")
-        return {"intent": "off_topic", "repo": None, "project_scope": "none", "project": None, "action": "none"}
+        return {"intent": "off_topic", "repo": None, "project_scope": "none", "project": None, "action": "none", "status": ""}
 
     # guard against a hallucinated repo/project name
     repo = result.repo if result.repo in _REPOS else None
@@ -51,10 +54,17 @@ async def node_classify(state: AgentState) -> dict:
     if action != "none":
         intent, repo, project_scope, project = "qa", None, "none", None
 
+    # actions already get a one-line reply, a status on top would just be noise
+    status = result.status.strip() if action == "none" else ""
+
+    if status:
+        get_stream_writer()({"type": "status", "text": status})
+
     return {
         "intent": intent,
         "repo": repo,
         "project_scope": project_scope,
         "project": project,
         "action": action,
+        "status": status,
     }
