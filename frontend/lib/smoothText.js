@@ -1,12 +1,27 @@
-// Tokens arrive in bursts. This releases them at a steady typing pace, one word at a time,
-// speeding up a little when it falls far behind so long replies don't drag.
+// Tokens arrive in bursts (often the whole reply within a second). This types them out
+// letter by letter at a steady pace, easing off as it catches up, so text flows instead of jumping.
 // Driven by a timer, not requestAnimationFrame: hidden tabs get no animation frames at all,
 // so a visitor switching tabs would come back to a frozen reply. Paced by elapsed time,
 // so a throttled timer still types at the same speed.
 const TICK_MS = 30;
-const MIN_CHARS_PER_SECOND = 35;
-const MAX_CHARS_PER_SECOND = 90;
-const CATCH_UP_SECONDS = 2.5; // aim to clear any backlog in this long, within the limits above
+const MIN_CHARS_PER_SECOND = 50;
+const MAX_CHARS_PER_SECOND = 120;
+const CATCH_UP_SECONDS = 3; // aim to clear any backlog in this long, within the limits above
+
+// An open ** or ` shows as raw symbols until its pair arrives, then the text snaps to bold/code.
+// Dropping the unpaired marker keeps the partial text clean; it styles itself once the pair shows up.
+function hideOpenMarkdown(text) {
+  for (const marker of ["**", "`"]) {
+    const count = text.split(marker).length - 1;
+
+    if (count % 2 === 1) {
+      const last = text.lastIndexOf(marker);
+      text = text.slice(0, last) + text.slice(last + marker.length);
+    }
+  }
+
+  return text;
+}
 
 export function createRevealer(onText) {
   let target = "";
@@ -27,19 +42,11 @@ export function createRevealer(onText) {
     // no saving up speed while waiting for tokens, or the next burst would dump at once
     budget = backlog > 0 ? budget + speed * elapsed : 0;
 
-    if (budget >= 1 && backlog > 0) {
-      // stop at the end of a word, so half-words never flash on screen
-      let next = Math.min(target.length, shown + Math.floor(budget));
-      while (next < target.length && !/\s/.test(target[next])) next++;
-
-      // the last word may still be arriving, wait for the rest of it
-      const wordIncomplete = next === target.length && !finished;
-      if (!wordIncomplete) {
-        // finishing the word overspends the budget, so the next words wait to pay it back
-        budget -= next - shown;
-        shown = next;
-        onText(target.slice(0, shown));
-      }
+    const step = Math.min(backlog, Math.floor(budget));
+    if (step > 0) {
+      budget -= step;
+      shown += step;
+      onText(hideOpenMarkdown(target.slice(0, shown)));
     }
 
     if (shown < target.length || !finished) {
@@ -47,6 +54,7 @@ export function createRevealer(onText) {
     } else {
       timer = null;
       lastTime = null;
+      onText(target); // final text exactly as sent, markers and all
       resolveDone?.();
     }
   }

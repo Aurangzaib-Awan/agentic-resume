@@ -19,7 +19,7 @@
     {
       "role": "GenAI Engineer Intern",
       "company": "Systems Limited",
-      "dates": "June 2026 - Sept 2026",
+      "dates": "June 2026 - Oct 2026",
       "bullets": [
         "Built a multi-agent conversational system for a high-end fashion brand: a browser agent handling routine product and catalog queries, and a case-solver agent handling complex, high-caliber requests.",
         "Defined the routing logic between agents so query complexity determined which agent handled the request, keeping simple lookups cheap and reserving deeper reasoning for hard cases.",
