@@ -12,6 +12,7 @@ import BookCallWidget from "@/components/BookCallWidget";
 import RelevancyWidget from "@/components/RelevancyWidget";
 import TypingIndicator from "@/components/TypingIndicator";
 import { streamAgentResponse } from "@/lib/api";
+import { createRevealer } from "@/lib/smoothText";
 import { getThreadId } from "@/lib/threadId";
 import { PROJECTS_PROMPT, openEmailDraft } from "@/lib/quickActions";
 
@@ -71,16 +72,21 @@ function ChatPageInner() {
     ]);
     setPending(true);
 
+    const revealer = createRevealer((content) => updateAgent(() => ({ content })));
+
     try {
       const { projects, action } = await streamAgentResponse(trimmed, threadIdRef.current, {
         onStatus: (status) => updateAgent(() => ({ status })),
-        onToken: (text) => updateAgent((m) => ({ content: m.content + text })),
+        onToken: revealer.push,
       });
+      // cards and widgets wait until the text has finished typing out
+      await revealer.finish();
       updateAgent(() => ({ projects, action }));
       if (action === "cv") setCvOpen(true);
     } catch {
       // keep whatever part of the reply already arrived
-      updateAgent((m) => ({ content: m.content ? `${m.content}\n\n_${CONNECTION_ERROR}_` : CONNECTION_ERROR }));
+      const partial = revealer.flush();
+      updateAgent(() => ({ content: partial ? `${partial}\n\n_${CONNECTION_ERROR}_` : CONNECTION_ERROR }));
     } finally {
       updateAgent(() => ({ streaming: false }));
       setPending(false);
