@@ -1,6 +1,10 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://agentic-resume-seven.vercel.app";
 
-export async function getAgentResponse(message, threadId) {
+const ACTIONS = ["cv", "relevancy", "book", "email", "hire"];
+
+// /chat streams server-sent events: status (optional) -> token (many) -> done, or error.
+// Read with fetch instead of EventSource, because EventSource can't POST.
+export async function streamAgentResponse(message, threadId, { onStatus, onToken }) {
   const res = await fetch(`${API_BASE_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -11,11 +15,34 @@ export async function getAgentResponse(message, threadId) {
     throw new Error(`Chat request failed with status ${res.status}`);
   }
 
-  const data = await res.json();
-  const action = ["cv", "relevancy", "book", "email", "hire"].includes(data.action)
-    ? data.action
-    : null;
-  return { reply: data.reply, projects: data.projects || [], action };
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    buffer += value;
+    const events = buffer.split("\n\n");
+    buffer = events.pop(); // last piece may be a half-received event
+
+    for (const raw of events) {
+      const type = raw.match(/^event: (.*)$/m)?.[1];
+      const data = JSON.parse(raw.match(/^data: (.*)$/m)?.[1] || "{}");
+
+      if (type === "status") onStatus(data.text);
+      else if (type === "token") onToken(data.text);
+      else if (type === "error") throw new Error("Chat stream failed");
+      else if (type === "done") {
+        return {
+          projects: data.projects || [],
+          action: ACTIONS.includes(data.action) ? data.action : null,
+        };
+      }
+    }
+  }
+
+  throw new Error("Chat stream ended early");
 }
 
 export async function getCalendarSlots(date) {

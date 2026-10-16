@@ -10,11 +10,14 @@ import QuickActionMenu from "@/components/QuickActionMenu";
 import CvModal from "@/components/CvModal";
 import BookCallWidget from "@/components/BookCallWidget";
 import RelevancyWidget from "@/components/RelevancyWidget";
-import { getAgentResponse } from "@/lib/api";
+import TypingIndicator from "@/components/TypingIndicator";
+import { streamAgentResponse } from "@/lib/api";
 import { getThreadId } from "@/lib/threadId";
 import { PROJECTS_PROMPT, openEmailDraft } from "@/lib/quickActions";
 
 let nextId = 1;
+
+const CONNECTION_ERROR = "I couldn't reach the backend just now — try again in a moment.";
 
 const INITIAL_MESSAGE = {
   id: 0,
@@ -56,24 +59,30 @@ function ChatPageInner() {
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    setMessages((prev) => [...prev, { id: nextId++, role: "visitor", content: trimmed }]);
+    // the agent's message exists from the start and fills in as events arrive
+    const agentId = nextId++;
+    const updateAgent = (change) =>
+      setMessages((prev) => prev.map((m) => (m.id === agentId ? { ...m, ...change(m) } : m)));
+
+    setMessages((prev) => [
+      ...prev,
+      { id: nextId++, role: "visitor", content: trimmed },
+      { id: agentId, role: "agent", content: "", status: null, streaming: true, projects: [], action: null },
+    ]);
     setPending(true);
 
     try {
-      const { reply, projects, action } = await getAgentResponse(trimmed, threadIdRef.current);
-      setMessages((prev) => [...prev, { id: nextId++, role: "agent", content: reply, projects, action }]);
+      const { projects, action } = await streamAgentResponse(trimmed, threadIdRef.current, {
+        onStatus: (status) => updateAgent(() => ({ status })),
+        onToken: (text) => updateAgent((m) => ({ content: m.content + text })),
+      });
+      updateAgent(() => ({ projects, action }));
       if (action === "cv") setCvOpen(true);
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: nextId++,
-          role: "agent",
-          content: "I couldn't reach the backend just now — try again in a moment.",
-          projects: [],
-        },
-      ]);
+      // keep whatever part of the reply already arrived
+      updateAgent((m) => ({ content: m.content ? `${m.content}\n\n_${CONNECTION_ERROR}_` : CONNECTION_ERROR }));
     } finally {
+      updateAgent(() => ({ streaming: false }));
       setPending(false);
     }
   }, []);
@@ -138,13 +147,20 @@ function ChatPageInner() {
           {messages.map((msg) => (
             <div key={msg.id} className={`msg ${msg.role}`}>
               <span className="msg-label">{msg.role === "agent" ? "Agent" : "You"}</span>
-              <div className="bubble">
-                {msg.role === "agent" ? (
-                  <MarkdownMessage content={msg.content} />
-                ) : (
-                  msg.content
-                )}
-              </div>
+              {msg.streaming && !msg.content ? (
+                <TypingIndicator text={msg.status} />
+              ) : (
+                <>
+                  {msg.status && <div className="msg-status">{msg.status}</div>}
+                  <div className="bubble">
+                    {msg.role === "agent" ? (
+                      <MarkdownMessage content={msg.content} />
+                    ) : (
+                      msg.content
+                    )}
+                  </div>
+                </>
+              )}
               {msg.widget === "book" && (
                 <BookCallWidget onBooked={(message) => appendAgentMessage(message)} />
               )}
@@ -207,14 +223,6 @@ function ChatPageInner() {
               )}
             </div>
           ))}
-          {pending && (
-            <div className="msg agent">
-              <span className="msg-label">Agent</span>
-              <div className="activity">
-                <span className="pulse"></span>Thinking...
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
