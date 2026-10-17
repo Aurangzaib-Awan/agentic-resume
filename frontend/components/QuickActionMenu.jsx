@@ -36,6 +36,7 @@ export default function QuickActionMenu({ onAction }) {
         <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
           <polygon points="13 2 4 14 12 14 11 22 20 10 12 10 13 2"></polygon>
         </svg>
+        <span className="qa-trigger-label">Shortcuts</span>
       </button>
       {!open && <span className="qa-tooltip" role="tooltip">Shortcuts</span>}
       {open && (

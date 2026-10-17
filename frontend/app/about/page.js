@@ -17,7 +17,7 @@ export default function AboutPage() {
       <div className="content-scroll">
         <div className="content-inner">
           <p className="about-lede">
-            I&apos;m Awan — I build multi-agent systems, RAG pipelines, and production LLM applications. This site is one of them.
+            I&apos;m Aurangzaib — I build multi-agent systems, RAG pipelines, and production LLM applications. This site is one of them.
           </p>
 
           <div className="about-body">

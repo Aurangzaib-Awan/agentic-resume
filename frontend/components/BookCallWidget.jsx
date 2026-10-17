@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { bookCalendarSlot, getCalendarSlots } from "@/lib/api";
 import { openEmailDraft } from "@/lib/quickActions";
 import { getThreadId } from "@/lib/threadId";
 
 const DAY_COUNT = 7;
+const TIME_ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 function toDateKey(d) {
   const y = d.getFullYear();
@@ -49,6 +50,8 @@ export default function BookCallWidget({ onBooked }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [formError, setFormError] = useState("");
+  const [attempt, setAttempt] = useState(0); // bumped by "Try again" to refetch the week
+  const formRef = useRef(null);
 
   // Fetch the whole week up front so we can open on the first day with open slots
   // and switching days is instant.
@@ -73,7 +76,12 @@ export default function BookCallWidget({ onBooked }) {
     return () => {
       cancelled = true;
     };
-  }, [days]);
+  }, [days, attempt]);
+
+  // the form renders below the slot grid, often below the fold on a phone
+  useEffect(() => {
+    if (selected) formRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [selected]);
 
   const slots = (date && slotsByDate[date]) || [];
   const morning = slots.filter((slot) => new Date(slot.time).getHours() < 12);
@@ -102,6 +110,7 @@ export default function BookCallWidget({ onBooked }) {
         name: trimmedName,
         email: trimmedEmail,
         threadId: getThreadId(),
+        timeZone: TIME_ZONE,
       });
       if (result.confirmed) {
         setStatus("booked");
@@ -111,7 +120,9 @@ export default function BookCallWidget({ onBooked }) {
         setFormError(result.message || "That slot couldn't be booked — pick another time.");
       }
     } catch {
-      setStatus("unavailable");
+      // keep the slot and details so one failed request doesn't cost the visitor their input
+      setStatus("ready");
+      setFormError("Couldn't reach the booking service. Your details are still here, so try again, or email him instead.");
     }
   }
 
@@ -126,6 +137,7 @@ export default function BookCallWidget({ onBooked }) {
               key={slot.time}
               type="button"
               className={`qa-chip slot${selected && selected.time === slot.time ? " active" : ""}`}
+              aria-pressed={selected ? selected.time === slot.time : false}
               disabled={status === "booking"}
               onClick={() => setSelected(slot)}
             >
@@ -140,9 +152,15 @@ export default function BookCallWidget({ onBooked }) {
   if (status === "unavailable") {
     return (
       <div className="qa-widget">
-        <p className="qa-note">Booking isn&apos;t set up yet — reach out via email instead.</p>
+        <p className="qa-note">Couldn&apos;t load his calendar just now. Try again, or email him instead.</p>
         <div className="pc-actions">
-          <button type="button" className="pc-btn primary" onClick={openEmailDraft}>
+          <button type="button" className="pc-btn primary" onClick={() => {
+              setStatus("loading");
+              setAttempt((n) => n + 1);
+            }}>
+            Try again
+          </button>
+          <button type="button" className="pc-btn" onClick={openEmailDraft}>
             Send Email
           </button>
         </div>
@@ -154,7 +172,11 @@ export default function BookCallWidget({ onBooked }) {
     return (
       <div className="qa-widget">
         <p className="qa-note">
-          Booked: {formatDay(new Date(selected.time))}, {formatTime(selected.time)}
+          <strong className="book-confirmed">
+            Booked for {formatDay(new Date(selected.time))}, {formatTime(selected.time)}
+          </strong>
+          <br />
+          A confirmation is on its way to {email.trim()}.
         </p>
       </div>
     );
@@ -164,7 +186,7 @@ export default function BookCallWidget({ onBooked }) {
     return (
       <div className="qa-widget">
         <div className="activity">
-          <span className="pulse"></span>Loading slots...
+          <span className="pulse"></span>Loading his calendar...
         </div>
       </div>
     );
@@ -172,14 +194,19 @@ export default function BookCallWidget({ onBooked }) {
 
   return (
     <div className="qa-widget">
+      <p className="qa-note book-meta">15-minute call · times in {TIME_ZONE.replace(/_/g, " ")}</p>
       <div className="book-days">
         {days.map((d) => {
           const key = toDateKey(d);
+          const open = slotsByDate[key]?.length > 0;
           return (
             <button
               key={key}
               type="button"
               className={`qa-chip${key === date ? " active" : ""}`}
+              aria-pressed={key === date}
+              aria-label={open ? undefined : `${formatDay(d)}, no open slots`}
+              disabled={!open}
               onClick={() => selectDate(key)}
             >
               {formatDay(d)}
@@ -189,7 +216,7 @@ export default function BookCallWidget({ onBooked }) {
       </div>
 
       {slots.length === 0 ? (
-        <p className="qa-note">No open slots on this day.</p>
+        <p className="qa-note">No open slots this week. Email him to find a time.</p>
       ) : (
         <div className="book-slots">
           {renderGroup("Morning", morning)}
@@ -198,10 +225,11 @@ export default function BookCallWidget({ onBooked }) {
       )}
 
       {selected && (
-        <form className="qa-form" onSubmit={handleBook}>
+        <form className="qa-form" onSubmit={handleBook} ref={formRef}>
           <input
             className="qa-input"
             type="text"
+            aria-label="Your name"
             placeholder="Your name"
             autoComplete="name"
             value={name}
@@ -210,12 +238,13 @@ export default function BookCallWidget({ onBooked }) {
           <input
             className="qa-input"
             type="email"
+            aria-label="Your email"
             placeholder="Your email"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          {formError && <p className="qa-note">{formError}</p>}
+          {formError && <p className="qa-note" role="alert">{formError}</p>}
           <div className="pc-actions">
             <button type="submit" className="pc-btn primary" disabled={status === "booking"}>
               {status === "booking"

@@ -75,6 +75,7 @@ class BookingRequest(BaseModel):
     name: str
     email: str
     thread_id: str | None = None
+    time_zone: str = "UTC"   # visitor's IANA zone, so Cal.com's confirmation email shows their local time
 
 
 @router.post("/calendar/book")
@@ -95,7 +96,7 @@ async def book_slot(payload: BookingRequest) -> dict:
                 "attendee": {
                     "name": payload.name,
                     "email": payload.email,
-                    "timeZone": "UTC",
+                    "timeZone": payload.time_zone,
                 },
             },
         )

@@ -38,7 +38,7 @@
   "projects": [
     {
       "name": "MentorAI",
-      "subtitle": "FYP - AI skill-mentor and proctoring system",
+      "subtitle": "AI skill-mentor and proctoring system (final-year project)",
       "github_repo": "MentorAI",
       "note": null,
       "tech_stack": ["FastAPI", "React", "YOLOv8", "MediaPipe", "PyTorch", "LangGraph"],
@@ -50,7 +50,7 @@
     {
       "name": "AI Assistant",
       "subtitle": "This agent — a LangGraph-powered talking resume",
-      "github_repo": "agentic_resume",
+      "github_repo": "agentic-resume",
       "note": null,
       "tech_stack": ["LangGraph", "LangChain", "FastAPI", "Next.js", "PostgreSQL", "Groq"],
       "bullets": [
@@ -60,7 +60,7 @@
     },
     {
       "name": "AI Stylist",
-      "subtitle": "Multi-Agent Assistant for a High-End Fashion Brand",
+      "subtitle": "Multi-agent assistant for a high-end fashion brand",
       "github_repo": null,
       "note": "Client project - code is private and the product never went live publicly, so there is no repo to share.",
       "tech_stack": ["LangGraph", "LangChain", "Playwright", "PostgreSQL", "ORM", "Python"],
@@ -72,9 +72,9 @@
     },
     {
       "name": "Multimodal RAG",
-      "subtitle": "Document QA System",
-      "github_repo": null,
-      "note": "Local only - not yet pushed to GitHub.",
+      "subtitle": "Document QA over both text and images",
+      "github_repo": "multimodal_rag",
+      "note": null,
       "tech_stack": ["VLM", "PyMuPDF4LLM", "fitz", "Qdrant", "hybrid retrieval"],
       "bullets": [
         "Built a multimodal RAG pipeline retrieving over both text and images, using a vision-language model (VLM) to interpret figures alongside font-aware text extracted via PyMuPDF4LLM and embedded images via fitz.",
@@ -83,13 +83,23 @@
     },
     {
       "name": "LLaMA 3.1 8B Fine-Tuning",
-      "subtitle": "Text-to-SQL",
+      "subtitle": "Text-to-SQL with QLoRA on the Spider dataset",
       "github_repo": "text-to-sql-llama",
       "note": null,
       "tech_stack": ["QLoRA", "bitsandbytes", "PEFT", "HuggingFace SFTTrainer", "MLflow"],
       "bullets": [
         "Fine-tuned LLaMA 3.1 8B on the Spider Text-to-SQL dataset using QLoRA (4-bit quantization) on Kaggle GPUs.",
         "Applied PEFT via LoRA adapters for parameter-efficient fine-tuning, tracking experiments and metrics with MLflow."
+      ]
+    },
+    {
+      "name": "GitChat",
+      "subtitle": "RAG system for exploring GitHub repositories through natural-language queries",
+      "github_repo": "gitchat",
+      "note": null,
+      "tech_stack": ["Python", "FastAPI", "RAG", "Qdrant"],
+      "bullets": [
+        "Built a RAG system for exploring GitHub repositories through natural-language queries."
       ]
     }
   ],

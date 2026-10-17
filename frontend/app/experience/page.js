@@ -14,7 +14,7 @@ const ROLES = [
     logoHeight: 270,
     title: "Associate Software Engineer",
     period: "Oct 2026 — Present",
-    bullets: ["Yet to update."],
+    bullets: [],
     tags: [],
   },
   {

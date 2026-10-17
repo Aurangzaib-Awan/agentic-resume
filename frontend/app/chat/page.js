@@ -14,9 +14,12 @@ import TypingIndicator from "@/components/TypingIndicator";
 import { streamAgentResponse } from "@/lib/api";
 import { createRevealer } from "@/lib/smoothText";
 import { getThreadId } from "@/lib/threadId";
-import { PROJECTS_PROMPT, openEmailDraft } from "@/lib/quickActions";
+import { PROJECTS_PROMPT, QUICK_ACTIONS, openEmailDraft } from "@/lib/quickActions";
 
 let nextId = 1;
+
+// shown under the greeting until the first message, so a visitor arriving straight at /chat sees what the agent can do
+const STARTERS = QUICK_ACTIONS.filter((action) => action.id !== "email");
 
 const CONNECTION_ERROR = "I couldn't reach the backend just now — try again in a moment.";
 
@@ -24,7 +27,7 @@ const INITIAL_MESSAGE = {
   id: 0,
   role: "agent",
   content:
-    "I'm Awan's agent. Ask me about his projects, stack, or experience — I'll answer as him.",
+    "I'm Aurangzaib's agent. Ask me about his projects, stack, or experience.",
   projects: [],
   action: null,
 };
@@ -149,7 +152,7 @@ function ChatPageInner() {
       </div>
 
       <div className="chat-scroll" ref={scrollRef}>
-        <div className="chat-inner">
+        <div className="chat-inner" role="log" aria-live="polite" aria-busy={pending}>
           {messages.map((msg) => (
             <div key={msg.id} className={`msg ${msg.role}`}>
               <span className="msg-label">{msg.role === "agent" ? "Agent" : "You"}</span>
@@ -229,6 +232,15 @@ function ChatPageInner() {
               )}
             </div>
           ))}
+          {messages.length === 1 && (
+            <div className="chat-starters">
+              {STARTERS.map((action) => (
+                <button key={action.id} type="button" className="suggestion" onClick={() => runAction(action.id)}>
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -239,6 +251,7 @@ function ChatPageInner() {
             ref={inputRef}
             type="text"
             placeholder="Ask me anything..."
+            aria-label="Message the agent"
             autoComplete="off"
             value={input}
             onChange={(e) => setInput(e.target.value)}

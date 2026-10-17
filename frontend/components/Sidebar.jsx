@@ -96,12 +96,13 @@ const FOOTER_ITEMS = [
   },
 ];
 
-export default function Sidebar({ collapsed, onToggleCollapse, drawerOpen }) {
+export default function Sidebar({ collapsed, onToggleCollapse, drawerOpen, hidden }) {
   const pathname = usePathname();
   const { closeDrawer } = useShell();
 
   return (
     <aside
+      inert={hidden}
       id="sidebar"
       className={[collapsed ? "collapsed" : "", drawerOpen ? "drawer-open" : ""].join(" ").trim()}
     >

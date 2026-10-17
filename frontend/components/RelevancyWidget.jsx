@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { checkRelevancy, RelevancyRejectedError } from "@/lib/api";
 
 // status: idle | loading | done | unavailable (rejected input shows `error` and keeps the form)
@@ -9,6 +9,7 @@ export default function RelevancyWidget() {
   const [status, setStatus] = useState("idle");
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const hintId = useId();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -33,8 +34,14 @@ export default function RelevancyWidget() {
     return (
       <div className="qa-widget">
         <p className="qa-note">
-          Relevancy check isn&apos;t available yet — ask the agent directly about specific skills instead.
+          The job-fit check didn&apos;t respond. Your text is still here, so you can try again, or ask the agent about
+          specific skills instead.
         </p>
+        <div className="pc-actions">
+          <button type="button" className="pc-btn primary" onClick={() => setStatus("idle")}>
+            Try again
+          </button>
+        </div>
       </div>
     );
   }
@@ -43,8 +50,10 @@ export default function RelevancyWidget() {
     return (
       <div className="relevancy-card">
         <div className="rel-head">
-          <span className="rel-label">Relevancy</span>
-          <span className="rel-score">{result.score}%</span>
+          <span className="rel-label">Job fit</span>
+          <span className="rel-score">
+            {result.score}% <span className="rel-score-unit">match</span>
+          </span>
         </div>
         {result.summary && <p className="rel-summary">{result.summary}</p>}
         {result.strengths.length > 0 && (
@@ -62,11 +71,16 @@ export default function RelevancyWidget() {
             <span className="rel-label">Gaps</span>
             <div className="pc-tags">
               {result.gaps.map((g) => (
-                <span className="pc-tag" key={g}>{g}</span>
+                <span className="pc-tag gap" key={g}>{g}</span>
               ))}
             </div>
           </div>
         )}
+        <div className="pc-actions">
+          <button type="button" className="pc-btn" onClick={() => setStatus("idle")}>
+            Check another job
+          </button>
+        </div>
       </div>
     );
   }
@@ -75,20 +89,25 @@ export default function RelevancyWidget() {
     <form className="qa-widget qa-form" onSubmit={handleSubmit}>
       <textarea
         className="qa-input"
+        aria-label="Job description"
+        aria-describedby={hintId}
         placeholder="Paste the job description here..."
         rows={7}
         value={jobDescription}
         onChange={(e) => setJobDescription(e.target.value)}
         disabled={status === "loading"}
       />
-      {error && <p className="qa-note">{error}</p>}
+      <p className="qa-note" id={hintId}>
+        It&apos;s scored against his profile, with strengths and gaps. Nothing you paste is saved.
+      </p>
+      {error && <p className="qa-note" role="alert">{error}</p>}
       <div className="pc-actions">
         <button
           type="submit"
           className="pc-btn primary"
           disabled={!jobDescription.trim() || status === "loading"}
         >
-          {status === "loading" ? "Checking..." : "Check relevancy"}
+          {status === "loading" ? "Checking..." : "Check job fit"}
         </button>
       </div>
     </form>

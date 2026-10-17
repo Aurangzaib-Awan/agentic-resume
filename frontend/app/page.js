@@ -30,7 +30,7 @@ export default function Home() {
 
   return (
     <div className="hero-col">
-      <MobileTopbar title="Awan" />
+      <MobileTopbar title="Aurangzaib" />
       <main className="hero-main">
         <div className="hero">
           <h1>Talk to my agent.</h1>
@@ -39,7 +39,8 @@ export default function Home() {
           <form className="chat-input-shell" onSubmit={handleSubmit}>
             <input
               type="text"
-              placeholder="Ask me anything..."
+              placeholder="Ask about his work..."
+              aria-label="Ask the agent about his work"
               autoComplete="off"
               value={input}
               onChange={(e) => setInput(e.target.value)}
