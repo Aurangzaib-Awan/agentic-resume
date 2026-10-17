@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import { ShellContext } from "./ShellContext";
+import { ChatProvider } from "./ChatContext";
 
 export default function Shell({ children }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -38,7 +39,7 @@ export default function Shell({ children }) {
     <ShellContext.Provider value={{ openDrawer, closeDrawer }}>
       <Sidebar collapsed={collapsed} onToggleCollapse={toggleCollapse} drawerOpen={drawerOpen} hidden={isMobile && !drawerOpen} />
       <div className={["drawer-backdrop", drawerOpen ? "open" : ""].join(" ").trim()} onClick={closeDrawer}></div>
-      {children}
+      <ChatProvider>{children}</ChatProvider>
     </ShellContext.Provider>
   );
 }

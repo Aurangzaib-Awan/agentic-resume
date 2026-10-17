@@ -11,37 +11,19 @@ import CvModal from "@/components/CvModal";
 import BookCallWidget from "@/components/BookCallWidget";
 import RelevancyWidget from "@/components/RelevancyWidget";
 import TypingIndicator from "@/components/TypingIndicator";
-import { streamAgentResponse } from "@/lib/api";
-import { createRevealer } from "@/lib/smoothText";
-import { getThreadId } from "@/lib/threadId";
+import { useChat } from "@/components/ChatContext";
 import { PROJECTS_PROMPT, QUICK_ACTIONS, openEmailDraft } from "@/lib/quickActions";
-
-let nextId = 1;
 
 // shown under the greeting until the first message, so a visitor arriving straight at /chat sees what the agent can do
 const STARTERS = QUICK_ACTIONS.filter((action) => action.id !== "email");
 
-const CONNECTION_ERROR = "I couldn't reach the backend just now — try again in a moment.";
-
-const INITIAL_MESSAGE = {
-  id: 0,
-  role: "agent",
-  content:
-    "I'm Aurangzaib's agent. Ask me about his projects, stack, or experience.",
-  projects: [],
-  action: null,
-};
-
 function ChatPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [messages, setMessages] = useState([INITIAL_MESSAGE]);
+  const { messages, pending, cvOpen, setCvOpen, sendMessage, appendAgentMessage } = useChat();
   const [input, setInput] = useState("");
-  const [pending, setPending] = useState(false);
-  const [cvOpen, setCvOpen] = useState(false);
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
-  const threadIdRef = useRef(null);
   const initialSendRef = useRef(false);
 
   const prefillInput = useCallback((text) => {
@@ -50,58 +32,10 @@ function ChatPageInner() {
   }, []);
 
   useEffect(() => {
-    threadIdRef.current = getThreadId();
-  }, []);
-
-  useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, pending]);
-
-  const sendMessage = useCallback(async (text) => {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-
-    // the agent's message exists from the start and fills in as events arrive
-    const agentId = nextId++;
-    const updateAgent = (change) =>
-      setMessages((prev) => prev.map((m) => (m.id === agentId ? { ...m, ...change(m) } : m)));
-
-    setMessages((prev) => [
-      ...prev,
-      { id: nextId++, role: "visitor", content: trimmed },
-      { id: agentId, role: "agent", content: "", status: null, streaming: true, projects: [], action: null },
-    ]);
-    setPending(true);
-
-    const revealer = createRevealer((content) => updateAgent(() => ({ content })));
-
-    try {
-      const { projects, action } = await streamAgentResponse(trimmed, threadIdRef.current, {
-        onStatus: (status) => updateAgent(() => ({ status })),
-        onToken: revealer.push,
-      });
-      // cards and widgets wait until the text has finished typing out
-      await revealer.finish();
-      updateAgent(() => ({ projects, action }));
-      if (action === "cv") setCvOpen(true);
-    } catch {
-      // keep whatever part of the reply already arrived
-      const partial = revealer.flush();
-      updateAgent(() => ({ content: partial ? `${partial}\n\n_${CONNECTION_ERROR}_` : CONNECTION_ERROR }));
-    } finally {
-      updateAgent(() => ({ streaming: false }));
-      setPending(false);
-    }
-  }, []);
-
-  const appendAgentMessage = useCallback((content, widget) => {
-    setMessages((prev) => [
-      ...prev,
-      { id: nextId++, role: "agent", content, projects: [], widget },
-    ]);
-  }, []);
 
   const runAction = useCallback(
     (id) => {
@@ -113,7 +47,7 @@ function ChatPageInner() {
       else if (id === "book") appendAgentMessage("Pick a day and time that works for you.", "book");
       else if (id === "relevancy") appendAgentMessage("Paste the job description below.", "relevancy");
     },
-    [pending, sendMessage, appendAgentMessage]
+    [pending, sendMessage, appendAgentMessage, setCvOpen]
   );
 
   useEffect(() => {
@@ -125,9 +59,9 @@ function ChatPageInner() {
       initialSendRef.current = true;
       router.replace("/chat");
       // One-shot handoff from another page (?q=, ?action=, or ?prefill=), not a sync loop.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (q) sendMessage(q);
       else if (action) runAction(action);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       else prefillInput(prefill);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
