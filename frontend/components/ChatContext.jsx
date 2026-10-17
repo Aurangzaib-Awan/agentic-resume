@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { streamAgentResponse } from "@/lib/api";
 import { createRevealer } from "@/lib/smoothText";
 import { getThreadId } from "@/lib/threadId";
@@ -8,7 +8,8 @@ import { getThreadId } from "@/lib/threadId";
 // Chat state lives here, in the shared layout, instead of in the /chat page: the layout stays
 // mounted across page changes, so the conversation (and a reply still streaming) survives
 // visiting another page and coming back.
-// shortcut: memory only, so a full reload still starts fresh; mirror `messages` to sessionStorage if that matters.
+// Finished turns are also saved to sessionStorage, so a reload in the same tab keeps the chat.
+// Widgets (booking, job fit) come back in their starting state; their half-filled input is not saved.
 
 let nextId = 1;
 
@@ -22,12 +23,50 @@ const INITIAL_MESSAGE = {
   action: null,
 };
 
+const STORAGE_KEY = "chat";
+
+// The saved chat belongs to one thread_id. Once that expires (1 hour), the backend has forgotten
+// the conversation, so showing it again would mislead: start fresh instead.
+function loadSavedMessages() {
+  try {
+    const saved = JSON.parse(window.sessionStorage.getItem(STORAGE_KEY));
+    if (saved && saved.threadId === getThreadId() && saved.messages.length > 1) return saved.messages;
+  } catch {
+    // unreadable or blocked storage: start fresh
+  }
+  return null;
+}
+
 const ChatContext = createContext(null);
 
 export function ChatProvider({ children }) {
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [pending, setPending] = useState(false);
   const [cvOpen, setCvOpen] = useState(false);
+
+  // restored after mount, not in useState, so the server render and first client render match
+  useEffect(() => {
+    const saved = loadSavedMessages();
+    if (!saved) return;
+    // the chat page's effects run first, so a deep link like /chat?q= may already have started a
+    // new turn; keep that turn rather than overwrite it with the saved one
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot read from browser storage
+    setMessages((current) => {
+      if (current.length > 1) return current;
+      nextId = Math.max(...saved.map((m) => m.id)) + 1;
+      return saved;
+    });
+  }, []);
+
+  // saved only between turns: a reply cut off by a reload isn't stored by the backend either
+  useEffect(() => {
+    if (pending || messages.length < 2) return;
+    try {
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ threadId: getThreadId(), messages }));
+    } catch {
+      // storage full or blocked: the chat still works, it just won't survive a reload
+    }
+  }, [messages, pending]);
 
   const sendMessage = useCallback(async (text) => {
     const trimmed = text.trim();
